@@ -20,14 +20,14 @@ func main() {
 	}
 
 	cryptoParser := parser.NewBinanceCryptoParser()
-	mailer := mailer.NewMailer("smtp.gmail.com", "587")
+	cryptoMailer := mailer.NewMailer("smtp.gmail.com", "587")
 
-	subscriberReposity := repository.NewSubscriberFileRepository(os.Getenv("EMAILSFILEPATH"))
+	subscriberRepository := repository.NewSubscriberFileRepository(os.Getenv("EMAILS_FILEPATH"))
 
-	mailerService := service.NewMailerService(subscriberReposity, mailer)
+	mailerService := service.NewMailerService(subscriberRepository, cryptoMailer)
 
 	rateHandler := handler.NewRateHandler(cryptoParser)
-	mailerHandler := handler.NewMailerHandler(mailerService, cryptoParser, subscriberReposity, validator.New())
+	mailerHandler := handler.NewMailerHandler(mailerService, cryptoParser, subscriberRepository, validator.New())
 
 	app := fiber.New()
 	api := app.Group("/api")

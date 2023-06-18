@@ -40,11 +40,11 @@ func (s *MailerService) SendValueToAllEmails(value string) error {
 
 		err := s.mailer.SendEmail(subscriber.GetEmail(), message)
 		if err != nil {
-			log.Printf("Failed to send email to %s: %s", subscriber.GetEmail(), err)
+			log.Printf("failed to send email to %s: %s", subscriber.GetEmail(), err)
 			return err
 		}
 
-		log.Printf("Email sent successfully to %s", subscriber.GetEmail())
+		log.Printf("email sent successfully to %s", subscriber.GetEmail())
 	}
 
 	return nil

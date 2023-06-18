@@ -13,7 +13,7 @@ func TestCreateSubscriber(t *testing.T) {
 	testSubscriber := model.NewSubscriber(testEmail)
 
 	if err := subscriberRepository.Create(testSubscriber); err != nil {
-		t.Errorf("failed to add subscribers '%s' to file '%s': %v", testEmail, testFilePath, err)
+		t.Errorf("failed to add subscriber '%s' to file '%s': %v", testEmail, testFilePath, err)
 	}
 
 	testSubscribers, err := subscriberRepository.GetAll()

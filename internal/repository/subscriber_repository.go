@@ -4,12 +4,12 @@ import (
 	"bitcoin-exchange-rate/internal/model"
 	"bufio"
 	"errors"
-	"fmt"
+	"log"
 	"os"
 	"strings"
 )
 
-var ErrEmailAlreadyExist = errors.New("email already exists in the file")
+var ErrEmailAlreadyExist = errors.New("subscriber already exists in the file")
 
 type SubscriberFileRepository struct {
 	filePath string
@@ -26,7 +26,12 @@ func (r *SubscriberFileRepository) GetAll() ([]*model.Subscriber, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+
+	defer func() {
+		if err := file.Close(); err != nil {
+			log.Printf("error closing file: %s", err)
+		}
+	}()
 
 	var subscribers []*model.Subscriber
 
@@ -49,8 +54,7 @@ func (r *SubscriberFileRepository) Create(subscriber *model.Subscriber) error {
 	}
 
 	if strings.Contains(string(content), subscriber.GetEmail()) {
-		fmt.Println("test: ", subscriber)
-		fmt.Println(string(content))
+		log.Printf("subscriber '%s' already exists", string(content))
 		return ErrEmailAlreadyExist
 	}
 
@@ -58,13 +62,18 @@ func (r *SubscriberFileRepository) Create(subscriber *model.Subscriber) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+
+	defer func() {
+		if err := file.Close(); err != nil {
+			log.Printf("error closing file: %s", err)
+		}
+	}()
 
 	if _, err := file.WriteString("\n" + subscriber.GetEmail()); err != nil {
 		return err
 	}
 
-	fmt.Println("Subscriber appended to the file.")
+	log.Printf("subscriber added successfully")
 	return nil
 }
 
@@ -73,7 +82,11 @@ func (r *SubscriberFileRepository) ClearFile() error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			log.Printf("error closing file: %s", err)
+		}
+	}()
 
 	return nil
 }

@@ -3,6 +3,7 @@ package parser
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -25,7 +26,11 @@ func (p *BinanceCryptoParser) GetExchangeRate(baseCurrency string, quoteCurrency
 		return 0, err
 	}
 
-	defer response.Body.Close()
+	defer func() {
+		if err := response.Body.Close(); err != nil {
+			log.Printf("error closing response body: %s", err)
+		}
+	}()
 
 	var result struct {
 		Price string `json:"price"`
