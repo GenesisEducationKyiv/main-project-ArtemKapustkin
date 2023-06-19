@@ -53,9 +53,13 @@ func (r *SubscriberFileRepository) Create(subscriber *model.Subscriber) error {
 		return err
 	}
 
-	if strings.Contains(string(content), subscriber.GetEmail()) {
-		log.Printf("subscriber '%s' already exists", string(content))
-		return ErrEmailAlreadyExist
+	lines := strings.Split(string(content), "\n")
+
+	for _, line := range lines {
+		if line == subscriber.GetEmail() {
+			log.Printf("subscriber '%s' already exists", subscriber.GetEmail())
+			return ErrEmailAlreadyExist
+		}
 	}
 
 	file, err := os.OpenFile(r.filePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
@@ -73,7 +77,7 @@ func (r *SubscriberFileRepository) Create(subscriber *model.Subscriber) error {
 		return err
 	}
 
-	log.Printf("subscriber added successfully")
+	log.Printf("subscriber '%s' added successfully", subscriber.GetEmail())
 	return nil
 }
 
