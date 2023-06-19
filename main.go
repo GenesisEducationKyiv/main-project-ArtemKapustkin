@@ -20,7 +20,7 @@ func main() {
 	}
 
 	cryptoParser := parser.NewBinanceCryptoParser()
-	cryptoMailer := mailer.NewMailer("smtp.gmail.com", "587")
+	cryptoMailer := mailer.NewMailer("smtp.gmail.com", "587", os.Getenv("SENDER_EMAIL"), os.Getenv("SENDER_PASSWORD"))
 
 	subscriberRepository := repository.NewSubscriberFileRepository(os.Getenv("EMAILS_FILEPATH"))
 

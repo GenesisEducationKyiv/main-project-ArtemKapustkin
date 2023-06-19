@@ -2,7 +2,6 @@ package mailer
 
 import (
 	"net/smtp"
-	"os"
 )
 
 type Mailer struct {
@@ -12,12 +11,12 @@ type Mailer struct {
 	password string
 }
 
-func NewMailer(server, port string) *Mailer {
+func NewMailer(server, port, email, password string) *Mailer {
 	return &Mailer{
 		server:   server,
 		port:     port,
-		email:    os.Getenv("SENDER_EMAIL"),
-		password: os.Getenv("SENDER_PASSWORD"),
+		email:    email,
+		password: password,
 	}
 }
 
