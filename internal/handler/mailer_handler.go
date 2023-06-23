@@ -6,6 +6,8 @@ import (
 	"bitcoin-exchange-rate/internal/service"
 	"bitcoin-exchange-rate/pkg/parser"
 	"errors"
+	"log"
+	"net/http"
 	"os"
 	"strconv"
 
@@ -46,38 +48,40 @@ func NewMailerHandler(
 func (h *MailerHandler) SendExchangeRate(c *fiber.Ctx) error {
 	value, err := h.binanceCryptoParser.GetExchangeRate(h.exchangeRateBaseCurrency, h.exchangeRateQuoteCurrency)
 	if err != nil {
-		return c.SendStatus(500)
+		return c.SendStatus(http.StatusInternalServerError)
 	}
 
 	err = h.mailerService.SendValueToAllEmails(strconv.FormatFloat(value, 'f', 2, 64))
 	if err != nil {
-		return c.SendStatus(400)
+		log.Println(err)
+		return c.SendStatus(http.StatusBadRequest)
 	}
 
-	return c.SendStatus(200)
+	return c.SendStatus(http.StatusOK)
 }
 
 func (h *MailerHandler) Subscribe(c *fiber.Ctx) error {
 	var payload subscribeDTO
 
 	if err := c.BodyParser(&payload); err != nil {
-		return c.SendStatus(500)
+		log.Println(err)
+		return c.SendStatus(http.StatusBadRequest)
 	}
 
 	if h.validator.Struct(&payload) != nil {
-		return c.SendStatus(400)
+		return c.SendStatus(http.StatusBadRequest)
 	}
 
 	err := h.subscriberRepository.Create(model.NewSubscriber(payload.Email))
 	if err != nil {
 		if errors.Is(err, repository.ErrEmailAlreadyExist) {
-			return c.SendStatus(409)
+			return c.SendStatus(http.StatusConflict)
 		}
-
-		return c.SendStatus(500)
+		log.Println(err)
+		return c.SendStatus(http.StatusInternalServerError)
 	}
 
-	return c.SendStatus(200)
+	return c.SendStatus(http.StatusOK)
 }
 
 type subscribeDTO struct {
