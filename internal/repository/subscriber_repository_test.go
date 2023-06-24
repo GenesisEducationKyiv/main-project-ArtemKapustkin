@@ -2,11 +2,16 @@ package repository
 
 import (
 	"bitcoin-exchange-rate/internal/model"
+	"github.com/joho/godotenv"
+	"os"
 	"testing"
 )
 
 func TestCreateSubscriber(t *testing.T) {
-	testFilePath := "../../data/emails_test.txt"
+	if err := godotenv.Load("../../.env.test"); err != nil {
+		t.Fatal("Failed to load .env.test file")
+	}
+	testFilePath := os.Getenv("REPO_TEST_FILE_PATH")
 	subscriberRepository := NewSubscriberFileRepository(testFilePath)
 
 	testEmail := "test@gmail.com"

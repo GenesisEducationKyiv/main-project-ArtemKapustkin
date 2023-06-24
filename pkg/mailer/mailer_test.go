@@ -8,9 +8,9 @@ import (
 )
 
 func TestSendingEmail(t *testing.T) {
-	err := godotenv.Load("../../.env")
+	err := godotenv.Load("../../.env.test")
 	if err != nil {
-		t.Errorf("error loading .env file")
+		t.Errorf("error loading .env.test file")
 	}
 
 	mailer := NewMailer("smtp.gmail.com", "587", os.Getenv("SENDER_EMAIL"), os.Getenv("SENDER_PASSWORD"))

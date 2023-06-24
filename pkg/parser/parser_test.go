@@ -2,11 +2,15 @@ package parser
 
 import (
 	"errors"
+	"github.com/joho/godotenv"
 	"os"
 	"testing"
 )
 
 func TestGetExchangeRate(t *testing.T) {
+	if err := godotenv.Load("../../.env.test"); err != nil {
+		t.Fatal("Failed to load .env.test file")
+	}
 	binanceParser := NewBinanceCryptoParser(os.Getenv("BASE_URL"))
 	rate, err := binanceParser.GetExchangeRate("BTC", "UAH")
 	if err != nil {
@@ -19,6 +23,9 @@ func TestGetExchangeRate(t *testing.T) {
 }
 
 func TestGetExchangeRateFault(t *testing.T) {
+	if err := godotenv.Load("../../.env.test"); err != nil {
+		t.Fatal("Failed to load .env.test file")
+	}
 	binanceParser := NewBinanceCryptoParser(os.Getenv("BASE_URL"))
 	rate, err := binanceParser.GetExchangeRate("BTC", "BTC")
 	if err == errors.New("invalid syntax") {

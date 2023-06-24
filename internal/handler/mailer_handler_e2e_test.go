@@ -18,15 +18,15 @@ import (
 )
 
 func TestMailerHandler_Subscribe(t *testing.T) {
-	if err := godotenv.Load("../../.env"); err != nil {
-		t.Fatal("Failed to load .env file")
+	if err := godotenv.Load("../../.env.test"); err != nil {
+		t.Fatal("Failed to load .env.test file")
 	}
 	app := fiber.New()
 	api := app.Group("/api")
 
 	cryptoParser := parser.NewBinanceCryptoParser(os.Getenv("BASE_URL"))
 	cryptoMailer := mailer.NewMailer("smtp.gmail.com", "587", os.Getenv("SENDER_EMAIL"), os.Getenv("SENDER_PASSWORD"))
-	subscriberRepository := repository.NewSubscriberFileRepository("../../data/emails_test.txt")
+	subscriberRepository := repository.NewSubscriberFileRepository(os.Getenv("TEST_FILE_PATH"))
 
 	mailerService := service.NewMailerService(subscriberRepository, cryptoMailer)
 	mailerHandler := NewMailerHandler(mailerService, cryptoParser, subscriberRepository, validator.New())
@@ -74,12 +74,15 @@ func TestMailerHandler_Subscribe(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, test.expectedStatusCode, resp.StatusCode)
 		})
-
 	}
 	subscriberRepository.ClearFile()
 }
 
 func TestMailerHandler_SendEmails(t *testing.T) {
+	if err := godotenv.Load("../../.env.test"); err != nil {
+		t.Fatal("Failed to load .env.test file")
+	}
+
 	tests := []struct {
 		name               string
 		filepath           string
@@ -87,18 +90,14 @@ func TestMailerHandler_SendEmails(t *testing.T) {
 	}{
 		{
 			name:               "Send emails successful",
-			filepath:           "../../data/emails_test.txt",
+			filepath:           os.Getenv("FULL_TEST_FILE_PATH"),
 			expectedStatusCode: http.StatusOK,
 		},
 		{
 			name:               "Send emails error (no subscribers)",
-			filepath:           "../../data/empty_emails_test.txt",
+			filepath:           os.Getenv("EMPTY_TEST_FILE_PATH"),
 			expectedStatusCode: http.StatusBadRequest,
 		},
-	}
-
-	if err := godotenv.Load("../../.env"); err != nil {
-		t.Fatal("Failed to load .env file")
 	}
 
 	for _, test := range tests {

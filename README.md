@@ -64,3 +64,5 @@ These endpoints specifically designed for fetching market data, including ticker
     * 409 - Conflict
     * 500 - Internal Server Error
 
+# Tests
+To run tests use this command: go test ./...

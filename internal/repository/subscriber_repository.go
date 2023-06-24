@@ -10,6 +10,7 @@ import (
 )
 
 var ErrEmailAlreadyExist = errors.New("subscriber already exists in the file")
+var ErrFileIsNotEmpty = errors.New("file is not empty")
 
 type SubscriberFileRepository struct {
 	filePath string
@@ -90,6 +91,12 @@ func (r *SubscriberFileRepository) ClearFile() error {
 	if err != nil {
 		return err
 	}
+	if isEmpty, err := r.isFileEmpty(r.filePath); err != nil {
+		return err
+	} else if !isEmpty {
+		return ErrFileIsNotEmpty
+	}
+
 	defer func() {
 		if err := file.Close(); err != nil {
 			log.Printf("error closing file: %s", err)
@@ -108,6 +115,7 @@ func (r *SubscriberFileRepository) isFileEmpty(filePath string) (bool, error) {
 
 	// Check if the file size is zero
 	if fileInfo.Size() == 0 {
+		log.Printf("file '%s' cleared successfully", r.filePath)
 		return true, nil
 	}
 
