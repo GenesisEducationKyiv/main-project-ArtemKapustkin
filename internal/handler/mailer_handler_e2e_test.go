@@ -75,7 +75,10 @@ func TestMailerHandler_Subscribe(t *testing.T) {
 			require.Equal(t, test.expectedStatusCode, resp.StatusCode)
 		})
 	}
-	subscriberRepository.ClearFile()
+
+	if err := subscriberRepository.ClearFile(); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestMailerHandler_SendEmails(t *testing.T) {
