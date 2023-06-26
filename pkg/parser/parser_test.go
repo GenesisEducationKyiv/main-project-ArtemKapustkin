@@ -13,7 +13,7 @@ func TestGetExchangeRate(t *testing.T) {
 	require.NoError(t, err, "Failed to load .env.test file")
 
 	binanceParser := NewBinanceCryptoParser(os.Getenv("BASE_URL"))
-	rate, err := binanceParser.GetExchangeRate("BTC", "UAH")
+	rate, err := binanceParser.GetExchangeRateValue("BTC", "UAH")
 
 	require.NoError(t, err, "Failure occurs while parsing exchange rate")
 	assert.Greater(t, rate, 0.0)
@@ -21,6 +21,6 @@ func TestGetExchangeRate(t *testing.T) {
 
 func TestGetExchangeRateFault(t *testing.T) {
 	binanceParser := NewBinanceCryptoParser("invalid-url")
-	_, err := binanceParser.GetExchangeRate("BTC", "UAH")
+	_, err := binanceParser.GetExchangeRateValue("BTC", "UAH")
 	assert.Error(t, err)
 }

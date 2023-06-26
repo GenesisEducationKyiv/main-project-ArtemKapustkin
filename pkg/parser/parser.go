@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"bitcoin-exchange-rate/internal/model"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -18,7 +19,7 @@ func NewBinanceCryptoParser(baseURL string) *BinanceCryptoParser {
 	}
 }
 
-func (p *BinanceCryptoParser) GetExchangeRate(baseCurrency string, quoteCurrency string) (float64, error) {
+func (p *BinanceCryptoParser) GetExchangeRateValue(baseCurrency model.Currency, quoteCurrency model.Currency) (float64, error) {
 	requestURL := fmt.Sprintf("%s/price?symbol=%s%s", p.baseURL, baseCurrency, quoteCurrency)
 
 	response, err := http.Get(requestURL)

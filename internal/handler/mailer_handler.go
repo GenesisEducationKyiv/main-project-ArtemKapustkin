@@ -25,8 +25,8 @@ type MailerHandler struct {
 	subscriberRepository SubscriberRepository
 	validator            *validator.Validate
 
-	exchangeRateBaseCurrency  string
-	exchangeRateQuoteCurrency string
+	exchangeRateBaseCurrency  model.Currency
+	exchangeRateQuoteCurrency model.Currency
 }
 
 func NewMailerHandler(
@@ -40,13 +40,13 @@ func NewMailerHandler(
 		binanceCryptoParser:       binanceCryptoParser,
 		subscriberRepository:      subscriberRepository,
 		validator:                 validator,
-		exchangeRateBaseCurrency:  os.Getenv("BASE_CURRENCY"),
-		exchangeRateQuoteCurrency: os.Getenv("QUOTE_CURRENCY"),
+		exchangeRateBaseCurrency:  model.Currency(os.Getenv("BASE_CURRENCY")),
+		exchangeRateQuoteCurrency: model.Currency(os.Getenv("QUOTE_CURRENCY")),
 	}
 }
 
 func (h *MailerHandler) SendExchangeRate(c *fiber.Ctx) error {
-	value, err := h.binanceCryptoParser.GetExchangeRate(h.exchangeRateBaseCurrency, h.exchangeRateQuoteCurrency)
+	value, err := h.binanceCryptoParser.GetExchangeRateValue(h.exchangeRateBaseCurrency, h.exchangeRateQuoteCurrency)
 	if err != nil {
 		return c.SendStatus(http.StatusInternalServerError)
 	}

@@ -4,6 +4,7 @@ import (
 	"bitcoin-exchange-rate/internal/model"
 	"bufio"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -48,37 +49,44 @@ func (r *SubscriberFileRepository) GetAll() ([]*model.Subscriber, error) {
 	return subscribers, nil
 }
 
+func (r *SubscriberFileRepository) isSubscriberExists(subscribers []string, subscriber *model.Subscriber) error {
+	for _, sub := range subscribers {
+		if sub == subscriber.GetEmail() {
+			log.Printf("subscriber '%s' already exists", subscriber.GetEmail())
+			return fmt.Errorf("%w, subscriber's email: %s", ErrEmailAlreadyExist, subscriber.GetEmail())
+		}
+	}
+	return nil
+}
+
 func (r *SubscriberFileRepository) Create(subscriber *model.Subscriber) error {
-	content, err := os.ReadFile(r.filePath)
+	readFile, err := os.ReadFile(r.filePath)
 	if err != nil {
 		return err
 	}
 
-	lines := strings.Split(string(content), "\n")
+	subscribers := strings.Split(string(readFile), "\n")
 
-	for _, line := range lines {
-		if line == subscriber.GetEmail() {
-			log.Printf("subscriber '%s' already exists", subscriber.GetEmail())
-			return ErrEmailAlreadyExist
-		}
+	if err = r.isSubscriberExists(subscribers, subscriber); err != nil {
+		return err
 	}
 
-	file, err := os.OpenFile(r.filePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+	writeFile, err := os.OpenFile(r.filePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}
 
 	defer func() {
-		if err := file.Close(); err != nil {
+		if err := writeFile.Close(); err != nil {
 			log.Printf("error closing file: %s", err)
 		}
 	}()
 
-	if _, err := file.WriteString("\n" + subscriber.GetEmail()); err != nil {
+	if _, err := writeFile.WriteString("\n" + subscriber.GetEmail()); err != nil {
 		return err
 	}
-
 	log.Printf("subscriber '%s' added successfully", subscriber.GetEmail())
+
 	return nil
 }
 
