@@ -1,38 +1,26 @@
 package parser
 
 import (
-	"errors"
 	"github.com/joho/godotenv"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"os"
 	"testing"
 )
 
 func TestGetExchangeRate(t *testing.T) {
-	if err := godotenv.Load("../../.env.test"); err != nil {
-		t.Fatal("Failed to load .env.test file")
-	}
+	err := godotenv.Load("../../.env.test")
+	require.NoError(t, err, "Failed to load .env.test file")
+
 	binanceParser := NewBinanceCryptoParser(os.Getenv("BASE_URL"))
 	rate, err := binanceParser.GetExchangeRate("BTC", "UAH")
-	if err != nil {
-		t.Errorf("failure occurs while parsing exchange rate: %v", err)
-	}
 
-	if rate < 0 {
-		t.Errorf("exchange rate is negative value: %v", rate)
-	}
+	require.NoError(t, err, "Failure occurs while parsing exchange rate")
+	assert.Greater(t, rate, 0.0)
 }
 
 func TestGetExchangeRateFault(t *testing.T) {
-	if err := godotenv.Load("../../.env.test"); err != nil {
-		t.Fatal("Failed to load .env.test file")
-	}
-	binanceParser := NewBinanceCryptoParser(os.Getenv("BASE_URL"))
-	rate, err := binanceParser.GetExchangeRate("BTC", "BTC")
-	if err == errors.New("invalid syntax") {
-		t.Errorf("invalid syntax failure occurs while parsing exchange rate: %v", err)
-	}
-
-	if rate < 0 {
-		t.Errorf("exchange rate is negative value: %v", rate)
-	}
+	binanceParser := NewBinanceCryptoParser("invalid-url")
+	_, err := binanceParser.GetExchangeRate("BTC", "UAH")
+	assert.Error(t, err)
 }

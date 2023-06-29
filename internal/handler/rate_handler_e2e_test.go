@@ -3,6 +3,7 @@ package handler
 import (
 	"bitcoin-exchange-rate/pkg/parser"
 	"github.com/gofiber/fiber/v2"
+	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/require"
 	"io"
 	"net/http"
@@ -32,9 +33,11 @@ func TestRateHandler_GetExchangeRateRate(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			if err := os.Setenv("BASE_URL", test.baseURL); err != nil {
-				t.Fatal("Failed to set BASE_URL")
-			}
+			err := godotenv.Load("../../.env.test")
+			require.NoError(t, err, "Failed to load .env.test file")
+
+			err = os.Setenv("BASE_URL", test.baseURL)
+			require.NoError(t, err, "Failed to set BASE_URL in .env.test file")
 
 			app := fiber.New()
 			api := app.Group("/api")

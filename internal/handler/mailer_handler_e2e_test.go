@@ -18,15 +18,16 @@ import (
 )
 
 func TestMailerHandler_Subscribe(t *testing.T) {
-	if err := godotenv.Load("../../.env.test"); err != nil {
-		t.Fatal("Failed to load .env.test file")
-	}
+	err := godotenv.Load("../../.env.test")
+	require.NoError(t, err, "Failed to load .env.test file")
+
 	app := fiber.New()
 	api := app.Group("/api")
 
 	cryptoParser := parser.NewBinanceCryptoParser(os.Getenv("BASE_URL"))
 	cryptoMailer := mailer.NewMailer("smtp.gmail.com", "587", os.Getenv("SENDER_EMAIL"), os.Getenv("SENDER_PASSWORD"))
-	subscriberRepository := repository.NewSubscriberFileRepository(os.Getenv("TEST_FILE_PATH"))
+	testFilePath := os.Getenv("TEST_FILE_PATH")
+	subscriberRepository := repository.NewSubscriberFileRepository(testFilePath)
 
 	mailerService := service.NewMailerService(subscriberRepository, cryptoMailer)
 	mailerHandler := NewMailerHandler(mailerService, cryptoParser, subscriberRepository, validator.New())
@@ -76,7 +77,7 @@ func TestMailerHandler_Subscribe(t *testing.T) {
 		})
 	}
 
-	if err := subscriberRepository.ClearFile(); err != nil {
+	if err := repository.ClearFile(testFilePath); err != nil {
 		t.Fatal(err)
 	}
 }

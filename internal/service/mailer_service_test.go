@@ -42,7 +42,7 @@ func TestMailerService_SendValueToAllEmails_Success(t *testing.T) {
 }
 
 func TestMailerService_SendValueToAllEmails_SubscriberFileIsEmpty(t *testing.T) {
-	mockRepo := &MockSubscriberRepository{} // No subscribers
+	mockRepo := &MockSubscriberRepository{}
 	mockMailer := &MockMailer{}
 
 	mailerService := NewMailerService(mockRepo, mockMailer)
