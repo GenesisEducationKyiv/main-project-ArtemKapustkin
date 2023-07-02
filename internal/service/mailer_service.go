@@ -2,9 +2,12 @@ package service
 
 import (
 	"bitcoin-exchange-rate/internal/model"
+	"errors"
 	"fmt"
 	"log"
 )
+
+var ErrSubscriberFileIsEmpty = errors.New("there are no subscribers in file")
 
 type SubscriberRepository interface {
 	GetAll() ([]*model.Subscriber, error)
@@ -33,6 +36,10 @@ func (s *MailerService) SendValueToAllEmails(value string) error {
 	subscribers, err := s.subscriberRepository.GetAll()
 	if err != nil {
 		return err
+	}
+
+	if len(subscribers) == 0 {
+		return ErrSubscriberFileIsEmpty
 	}
 
 	for _, subscriber := range subscribers {

@@ -12,9 +12,9 @@ type BinanceCryptoParser struct {
 	baseURL string
 }
 
-func NewBinanceCryptoParser() *BinanceCryptoParser {
+func NewBinanceCryptoParser(baseURL string) *BinanceCryptoParser {
 	return &BinanceCryptoParser{
-		baseURL: "https://api.binance.com/api/v3/ticker",
+		baseURL: baseURL,
 	}
 }
 

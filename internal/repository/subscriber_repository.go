@@ -10,6 +10,7 @@ import (
 )
 
 var ErrEmailAlreadyExist = errors.New("subscriber already exists in the file")
+var ErrFileIsNotEmpty = errors.New("file is not empty")
 
 type SubscriberFileRepository struct {
 	filePath string
@@ -81,11 +82,12 @@ func (r *SubscriberFileRepository) Create(subscriber *model.Subscriber) error {
 	return nil
 }
 
-func (r *SubscriberFileRepository) ClearFile() error {
-	file, err := os.OpenFile(r.filePath, os.O_WRONLY|os.O_TRUNC, 0644)
+func ClearFile(filePath string) error {
+	file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
 		return err
 	}
+	log.Printf("file '%s' cleared successfully", filePath)
 	defer func() {
 		if err := file.Close(); err != nil {
 			log.Printf("error closing file: %s", err)

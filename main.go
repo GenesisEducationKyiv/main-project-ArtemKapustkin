@@ -19,7 +19,8 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	cryptoParser := parser.NewBinanceCryptoParser()
+	cryptoParser := parser.NewBinanceCryptoParser(os.Getenv("BASE_URL"))
+
 	cryptoMailer := mailer.NewMailer("smtp.gmail.com", "587", os.Getenv("SENDER_EMAIL"), os.Getenv("SENDER_PASSWORD"))
 
 	subscriberRepository := repository.NewSubscriberFileRepository(os.Getenv("EMAILS_FILEPATH"))
