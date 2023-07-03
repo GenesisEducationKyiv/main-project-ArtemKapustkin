@@ -6,9 +6,7 @@ import (
 	"bitcoin-exchange-rate/internal/service"
 	"bitcoin-exchange-rate/pkg/parser"
 	"errors"
-	"log"
 	"net/http"
-	"os"
 	"strconv"
 
 	"github.com/go-playground/validator/v10"
@@ -25,8 +23,8 @@ type MailerHandler struct {
 	subscriberRepository SubscriberRepository
 	validator            *validator.Validate
 
-	exchangeRateBaseCurrency  string
-	exchangeRateQuoteCurrency string
+	exchangeRateBaseCurrency  model.Currency
+	exchangeRateQuoteCurrency model.Currency
 }
 
 func NewMailerHandler(
@@ -34,26 +32,27 @@ func NewMailerHandler(
 	binanceCryptoParser *parser.BinanceCryptoParser,
 	subscriberRepository SubscriberRepository,
 	validator *validator.Validate,
+	baseCurrency model.Currency,
+	quoteCurrency model.Currency,
 ) *MailerHandler {
 	return &MailerHandler{
 		mailerService:             mailerService,
 		binanceCryptoParser:       binanceCryptoParser,
 		subscriberRepository:      subscriberRepository,
 		validator:                 validator,
-		exchangeRateBaseCurrency:  os.Getenv("BASE_CURRENCY"),
-		exchangeRateQuoteCurrency: os.Getenv("QUOTE_CURRENCY"),
+		exchangeRateBaseCurrency:  baseCurrency,
+		exchangeRateQuoteCurrency: quoteCurrency,
 	}
 }
 
 func (h *MailerHandler) SendExchangeRate(c *fiber.Ctx) error {
-	value, err := h.binanceCryptoParser.GetExchangeRate(h.exchangeRateBaseCurrency, h.exchangeRateQuoteCurrency)
+	value, err := h.binanceCryptoParser.GetExchangeRateValue(h.exchangeRateBaseCurrency, h.exchangeRateQuoteCurrency)
 	if err != nil {
 		return c.SendStatus(http.StatusInternalServerError)
 	}
 
 	err = h.mailerService.SendValueToAllEmails(strconv.FormatFloat(value, 'f', 2, 64))
 	if err != nil {
-		log.Println(err)
 		return c.SendStatus(http.StatusBadRequest)
 	}
 
@@ -64,7 +63,6 @@ func (h *MailerHandler) Subscribe(c *fiber.Ctx) error {
 	var payload subscribeDTO
 
 	if err := c.BodyParser(&payload); err != nil {
-		log.Println(err)
 		return c.SendStatus(http.StatusBadRequest)
 	}
 
@@ -77,7 +75,6 @@ func (h *MailerHandler) Subscribe(c *fiber.Ctx) error {
 		if errors.Is(err, repository.ErrEmailAlreadyExist) {
 			return c.SendStatus(http.StatusConflict)
 		}
-		log.Println(err)
 		return c.SendStatus(http.StatusInternalServerError)
 	}
 

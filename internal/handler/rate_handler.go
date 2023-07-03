@@ -1,26 +1,36 @@
 package handler
 
 import (
+	"bitcoin-exchange-rate/internal/model"
 	"github.com/gofiber/fiber/v2"
 	"net/http"
 )
 
 type ExchangeRateClient interface {
-	GetExchangeRate(baseCurrency string, quoteCurrency string) (float64, error)
+	GetExchangeRateValue(baseCurrency model.Currency, quoteCurrency model.Currency) (float64, error)
 }
 
 type RateHandler struct {
-	binanceParser ExchangeRateClient
+	exchangeRateParser ExchangeRateClient
+
+	exchangeRateBaseCurrency  model.Currency
+	exchangeRateQuoteCurrency model.Currency
 }
 
-func NewRateHandler(binanceParser ExchangeRateClient) *RateHandler {
+func NewRateHandler(
+	exchangeRateParser ExchangeRateClient,
+	baseCurrency model.Currency,
+	quoteCurrency model.Currency,
+) *RateHandler {
 	return &RateHandler{
-		binanceParser: binanceParser,
+		exchangeRateParser:        exchangeRateParser,
+		exchangeRateBaseCurrency:  baseCurrency,
+		exchangeRateQuoteCurrency: quoteCurrency,
 	}
 }
 
 func (h *RateHandler) GetExchangeRate(c *fiber.Ctx) error {
-	rate, err := h.binanceParser.GetExchangeRate("BTC", "UAH")
+	rate, err := h.exchangeRateParser.GetExchangeRateValue(h.exchangeRateBaseCurrency, h.exchangeRateQuoteCurrency)
 	if err != nil {
 		return c.SendStatus(http.StatusBadRequest)
 	}

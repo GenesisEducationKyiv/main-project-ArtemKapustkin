@@ -1,43 +1,26 @@
 package main
 
 import (
-	"bitcoin-exchange-rate/internal/handler"
-	"bitcoin-exchange-rate/internal/repository"
-	"bitcoin-exchange-rate/internal/service"
-	"bitcoin-exchange-rate/pkg/mailer"
-	"bitcoin-exchange-rate/pkg/parser"
+	"bitcoin-exchange-rate/internal/webserver"
+	"github.com/joho/godotenv"
 	"log"
 	"os"
-
-	"github.com/go-playground/validator/v10"
-	"github.com/gofiber/fiber/v2"
-	"github.com/joho/godotenv"
 )
 
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Error loading .env file")
 	}
+	app := webserver.NewApp()
 
-	cryptoParser := parser.NewBinanceCryptoParser(os.Getenv("BASE_URL"))
+	app.Run(webserver.Config{
+		CryptoParserBaseURL:                os.Getenv("BASE_URL"),
+		CryptoMailerSenderEmail:            os.Getenv("SENDER_EMAIL"),
+		CryptoMailerSenderPassword:         os.Getenv("SENDER_PASSWORD"),
+		SubscriberRepositoryEmailsFilePath: os.Getenv("EMAILS_FILEPATH"),
+		BaseCurrencyStr:                    os.Getenv("BASE_CURRENCY"),
+		QuoteCurrencyStr:                   os.Getenv("QUOTE_CURRENCY"),
+	})
 
-	cryptoMailer := mailer.NewMailer("smtp.gmail.com", "587", os.Getenv("SENDER_EMAIL"), os.Getenv("SENDER_PASSWORD"))
-
-	subscriberRepository := repository.NewSubscriberFileRepository(os.Getenv("EMAILS_FILEPATH"))
-
-	mailerService := service.NewMailerService(subscriberRepository, cryptoMailer)
-
-	rateHandler := handler.NewRateHandler(cryptoParser)
-	mailerHandler := handler.NewMailerHandler(mailerService, cryptoParser, subscriberRepository, validator.New())
-
-	app := fiber.New()
-	api := app.Group("/api")
-
-	api.Get("/rate", rateHandler.GetExchangeRate)
-	api.Post("/subscribe", mailerHandler.Subscribe)
-	api.Post("/sendEmails", mailerHandler.SendExchangeRate)
-
-	if err := app.Listen(":3000"); err != nil {
-		log.Fatal(err)
-	}
+	defer app.Shutdown()
 }

@@ -20,8 +20,7 @@ type Mailer interface {
 type MailerService struct {
 	subscriberRepository SubscriberRepository
 	mailer               Mailer
-
-	messageToSend string
+	messageToSend        string
 }
 
 func NewMailerService(subscriberRepository SubscriberRepository, mailer Mailer) *MailerService {
