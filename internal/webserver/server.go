@@ -13,7 +13,9 @@ import (
 )
 
 type Config struct {
-	CryptoParserBaseURL                string
+	BinanceCryptoParserBaseURL         string
+	CoinCryptoParserBaseURL            string
+	CoinCryptoParserAPIKey             string
 	CryptoMailerSenderEmail            string
 	CryptoMailerSenderPassword         string
 	SubscriberRepositoryEmailsFilePath string
@@ -41,7 +43,16 @@ func (a *App) Run(config Config) {
 		log.Fatal(err)
 	}
 
-	cryptoParser := parser.NewBinanceCryptoParser(config.CryptoParserBaseURL)
+	coinCryptoParser := parser.NewCoinCryptoParser(config.CoinCryptoParserBaseURL, config.CoinCryptoParserAPIKey)
+	binanceCryptoParser := parser.NewBinanceCryptoParser(config.BinanceCryptoParserBaseURL)
+
+	loggingCoinCryptoParser := parser.NewLoggingProvider(coinCryptoParser)
+	loggingBinanceCryptoParser := parser.NewLoggingProvider(binanceCryptoParser)
+
+	coinProviderNode := parser.NewRateProviderNode(loggingCoinCryptoParser)
+	binanceProviderNode := parser.NewRateProviderNode(loggingBinanceCryptoParser)
+
+	binanceProviderNode.SetNext(coinProviderNode)
 
 	cryptoMailer := mailer.NewMailer("smtp.gmail.com", "587", config.CryptoMailerSenderEmail, config.CryptoMailerSenderPassword)
 
@@ -49,9 +60,9 @@ func (a *App) Run(config Config) {
 
 	mailerService := service.NewMailerService(subscriberRepository, cryptoMailer)
 
-	rateHandler := handler.NewRateHandler(cryptoParser, baseCurrency, quoteCurrency)
+	rateHandler := handler.NewRateHandler(binanceProviderNode, baseCurrency, quoteCurrency)
 
-	mailerHandler := handler.NewMailerHandler(mailerService, cryptoParser, subscriberRepository, validator.New(), baseCurrency, quoteCurrency)
+	mailerHandler := handler.NewMailerHandler(mailerService, binanceProviderNode, subscriberRepository, validator.New(), baseCurrency, quoteCurrency)
 
 	api := a.app.Group("/api")
 

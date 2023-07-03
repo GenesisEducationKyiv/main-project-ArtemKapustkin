@@ -4,7 +4,6 @@ import (
 	"bitcoin-exchange-rate/internal/model"
 	"bitcoin-exchange-rate/internal/repository"
 	"bitcoin-exchange-rate/internal/service"
-	"bitcoin-exchange-rate/pkg/parser"
 	"errors"
 	"net/http"
 	"strconv"
@@ -17,9 +16,13 @@ type SubscriberRepository interface {
 	Create(subscriber *model.Subscriber) error
 }
 
+type ParserService interface {
+	GetExchangeRateValue(baseCurrency model.Currency, quoteCurrency model.Currency) (float64, error)
+}
+
 type MailerHandler struct {
 	mailerService        *service.MailerService
-	binanceCryptoParser  *parser.BinanceCryptoParser
+	parserService        ParserService
 	subscriberRepository SubscriberRepository
 	validator            *validator.Validate
 
@@ -29,7 +32,7 @@ type MailerHandler struct {
 
 func NewMailerHandler(
 	mailerService *service.MailerService,
-	binanceCryptoParser *parser.BinanceCryptoParser,
+	parserService ParserService,
 	subscriberRepository SubscriberRepository,
 	validator *validator.Validate,
 	baseCurrency model.Currency,
@@ -37,7 +40,7 @@ func NewMailerHandler(
 ) *MailerHandler {
 	return &MailerHandler{
 		mailerService:             mailerService,
-		binanceCryptoParser:       binanceCryptoParser,
+		parserService:             parserService,
 		subscriberRepository:      subscriberRepository,
 		validator:                 validator,
 		exchangeRateBaseCurrency:  baseCurrency,
@@ -46,7 +49,7 @@ func NewMailerHandler(
 }
 
 func (h *MailerHandler) SendExchangeRate(c *fiber.Ctx) error {
-	value, err := h.binanceCryptoParser.GetExchangeRateValue(h.exchangeRateBaseCurrency, h.exchangeRateQuoteCurrency)
+	value, err := h.parserService.GetExchangeRateValue(h.exchangeRateBaseCurrency, h.exchangeRateQuoteCurrency)
 	if err != nil {
 		return c.SendStatus(http.StatusInternalServerError)
 	}

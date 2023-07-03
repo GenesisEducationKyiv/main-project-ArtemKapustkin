@@ -18,7 +18,9 @@ func TestRateHandler_GetExchangeRate_Success(t *testing.T) {
 
 	app := webserver.NewApp()
 	go app.Run(webserver.Config{
-		CryptoParserBaseURL:                os.Getenv("BASE_URL"),
+		BinanceCryptoParserBaseURL:         os.Getenv("BINANCE_BASE_URL"),
+		CoinCryptoParserBaseURL:            os.Getenv("COIN_BASE_URL"),
+		CoinCryptoParserAPIKey:             os.Getenv("COIN_API_KEY"),
 		CryptoMailerSenderEmail:            os.Getenv("SENDER_EMAIL"),
 		CryptoMailerSenderPassword:         os.Getenv("SENDER_PASSWORD"),
 		SubscriberRepositoryEmailsFilePath: os.Getenv("TEST_FILE_PATH"),
@@ -57,7 +59,9 @@ func TestRateHandler_GetExchangeRate_Failure(t *testing.T) {
 
 	app := webserver.NewApp()
 	go app.Run(webserver.Config{
-		CryptoParserBaseURL:                os.Getenv("BASE_URL"),
+		BinanceCryptoParserBaseURL:         os.Getenv("BINANCE_BASE_URL"),
+		CoinCryptoParserBaseURL:            os.Getenv("COIN_BASE_URL"),
+		CoinCryptoParserAPIKey:             os.Getenv("COIN_API_KEY"),
 		CryptoMailerSenderEmail:            os.Getenv("SENDER_EMAIL"),
 		CryptoMailerSenderPassword:         os.Getenv("SENDER_PASSWORD"),
 		SubscriberRepositoryEmailsFilePath: os.Getenv("TEST_FILE_PATH"),
