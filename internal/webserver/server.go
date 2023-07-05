@@ -5,17 +5,20 @@ import (
 	"bitcoin-exchange-rate/internal/model"
 	"bitcoin-exchange-rate/internal/repository"
 	"bitcoin-exchange-rate/internal/service"
+	"bitcoin-exchange-rate/pkg"
 	"bitcoin-exchange-rate/pkg/mailer"
-	"bitcoin-exchange-rate/pkg/parser"
+	"bitcoin-exchange-rate/pkg/rate_providers/binance_provider"
+	"bitcoin-exchange-rate/pkg/rate_providers/coinapi_provider"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"log"
+	"os"
 )
 
 type Config struct {
-	BinanceCryptoParserBaseURL         string
-	CoinCryptoParserBaseURL            string
-	CoinCryptoParserAPIKey             string
+	BinanceCryptoProviderBaseURL       string
+	CoinAPICryptoProviderBaseURL       string
+	CoinAPICryptoProviderKey           string
 	CryptoMailerSenderEmail            string
 	CryptoMailerSenderPassword         string
 	SubscriberRepositoryEmailsFilePath string
@@ -34,23 +37,16 @@ func NewApp() *App {
 }
 
 func (a *App) Run(config Config) {
-	baseCurrency, err := model.CurrencyFromString(config.BaseCurrencyStr)
-	if err != nil {
-		log.Fatal(err)
-	}
-	quoteCurrency, err := model.CurrencyFromString(config.QuoteCurrencyStr)
-	if err != nil {
-		log.Fatal(err)
-	}
+	baseCurrency, quoteCurrency := model.GetCurrencies(os.Getenv("BASE_CURRENCY"), os.Getenv("QUOTE_CURRENCY"))
 
-	coinCryptoParser := parser.NewCoinCryptoParser(config.CoinCryptoParserBaseURL, config.CoinCryptoParserAPIKey)
-	binanceCryptoParser := parser.NewBinanceCryptoParser(config.BinanceCryptoParserBaseURL)
+	coinAPICryptoProvider := coinapi_provider.NewCoinAPICryptoProvider(config.CoinAPICryptoProviderBaseURL, config.CoinAPICryptoProviderKey)
+	binanceCryptoProvider := binance_provider.NewBinanceCryptoProvider(config.BinanceCryptoProviderBaseURL)
 
-	loggingCoinCryptoParser := parser.NewLoggingProvider(coinCryptoParser)
-	loggingBinanceCryptoParser := parser.NewLoggingProvider(binanceCryptoParser)
+	loggingCoinAPICryptoProvider := pkg.NewLoggingProvider(coinAPICryptoProvider)
+	loggingBinanceCryptoProvider := pkg.NewLoggingProvider(binanceCryptoProvider)
 
-	coinProviderNode := parser.NewRateProviderNode(loggingCoinCryptoParser)
-	binanceProviderNode := parser.NewRateProviderNode(loggingBinanceCryptoParser)
+	coinProviderNode := pkg.NewRateProviderNode(loggingCoinAPICryptoProvider)
+	binanceProviderNode := pkg.NewRateProviderNode(loggingBinanceCryptoProvider)
 
 	binanceProviderNode.SetNext(coinProviderNode)
 

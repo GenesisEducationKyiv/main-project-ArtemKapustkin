@@ -19,9 +19,9 @@ func TestMailerHandler_Subscribe(t *testing.T) {
 
 	app := webserver.NewApp()
 	go app.Run(webserver.Config{
-		BinanceCryptoParserBaseURL:         os.Getenv("BINANCE_BASE_URL"),
-		CoinCryptoParserBaseURL:            os.Getenv("COIN_BASE_URL"),
-		CoinCryptoParserAPIKey:             os.Getenv("COIN_API_KEY"),
+		BinanceCryptoProviderBaseURL:       os.Getenv("BINANCE_BASE_URL"),
+		CoinAPICryptoProviderBaseURL:       os.Getenv("COIN_BASE_URL"),
+		CoinAPICryptoProviderKey:           os.Getenv("COIN_API_KEY"),
 		CryptoMailerSenderEmail:            os.Getenv("SENDER_EMAIL"),
 		CryptoMailerSenderPassword:         os.Getenv("SENDER_PASSWORD"),
 		SubscriberRepositoryEmailsFilePath: testFilePath,
@@ -85,9 +85,9 @@ func TestMailerHandler_SendEmails_Success(t *testing.T) {
 
 	app := webserver.NewApp()
 	go app.Run(webserver.Config{
-		BinanceCryptoParserBaseURL:         os.Getenv("BINANCE_BASE_URL"),
-		CoinCryptoParserBaseURL:            os.Getenv("COIN_BASE_URL"),
-		CoinCryptoParserAPIKey:             os.Getenv("COIN_API_KEY"),
+		BinanceCryptoProviderBaseURL:       os.Getenv("BINANCE_BASE_URL"),
+		CoinAPICryptoProviderBaseURL:       os.Getenv("COIN_BASE_URL"),
+		CoinAPICryptoProviderKey:           os.Getenv("COIN_API_KEY"),
 		CryptoMailerSenderEmail:            os.Getenv("SENDER_EMAIL"),
 		CryptoMailerSenderPassword:         os.Getenv("SENDER_PASSWORD"),
 		SubscriberRepositoryEmailsFilePath: os.Getenv("FULL_TEST_FILE_PATH"),
@@ -118,9 +118,9 @@ func TestMailerHandler_SendEmails_Failure(t *testing.T) {
 
 	app := webserver.NewApp()
 	go app.Run(webserver.Config{
-		BinanceCryptoParserBaseURL:         os.Getenv("BINANCE_BASE_URL"),
-		CoinCryptoParserBaseURL:            os.Getenv("COIN_BASE_URL"),
-		CoinCryptoParserAPIKey:             os.Getenv("COIN_API_KEY"),
+		BinanceCryptoProviderBaseURL:       os.Getenv("BINANCE_BASE_URL"),
+		CoinAPICryptoProviderBaseURL:       os.Getenv("COIN_BASE_URL"),
+		CoinAPICryptoProviderKey:           os.Getenv("COIN_API_KEY"),
 		CryptoMailerSenderEmail:            os.Getenv("SENDER_EMAIL"),
 		CryptoMailerSenderPassword:         os.Getenv("SENDER_PASSWORD"),
 		SubscriberRepositoryEmailsFilePath: os.Getenv("EMPTY_TEST_FILE_PATH"),

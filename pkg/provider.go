@@ -1,4 +1,4 @@
-package parser
+package pkg
 
 import "bitcoin-exchange-rate/internal/model"
 

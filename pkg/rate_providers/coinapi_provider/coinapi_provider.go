@@ -1,4 +1,4 @@
-package parser
+package coinapi_provider
 
 import (
 	"bitcoin-exchange-rate/internal/model"
@@ -9,13 +9,13 @@ import (
 	"net/http"
 )
 
-type CoinCryptoParser struct {
+type CoinAPICryptoProvider struct {
 	baseURL string
 	apiKey  string
 }
 
-func NewCoinCryptoParser(baseURL, apiKey string) *CoinCryptoParser {
-	return &CoinCryptoParser{
+func NewCoinAPICryptoProvider(baseURL, apiKey string) *CoinAPICryptoProvider {
+	return &CoinAPICryptoProvider{
 		baseURL: baseURL,
 		apiKey:  apiKey,
 	}
@@ -28,7 +28,7 @@ type ExchangeRate struct {
 	Rate         float64 `json:"rate"`
 }
 
-func (p *CoinCryptoParser) GetExchangeRateValue(baseCurrency model.Currency, quoteCurrency model.Currency) (float64, error) {
+func (p *CoinAPICryptoProvider) GetExchangeRateValue(baseCurrency model.Currency, quoteCurrency model.Currency) (float64, error) {
 	client := &http.Client{}
 	requestURL := fmt.Sprintf("%s/%s/%s", p.baseURL, baseCurrency, quoteCurrency)
 

@@ -1,4 +1,4 @@
-package parser
+package binance_provider
 
 import (
 	"bitcoin-exchange-rate/internal/model"
@@ -9,17 +9,17 @@ import (
 	"strconv"
 )
 
-type BinanceCryptoParser struct {
+type BinanceCryptoProvider struct {
 	baseURL string
 }
 
-func NewBinanceCryptoParser(baseURL string) *BinanceCryptoParser {
-	return &BinanceCryptoParser{
+func NewBinanceCryptoProvider(baseURL string) *BinanceCryptoProvider {
+	return &BinanceCryptoProvider{
 		baseURL: baseURL,
 	}
 }
 
-func (p *BinanceCryptoParser) GetExchangeRateValue(baseCurrency model.Currency, quoteCurrency model.Currency) (float64, error) {
+func (p *BinanceCryptoProvider) GetExchangeRateValue(baseCurrency model.Currency, quoteCurrency model.Currency) (float64, error) {
 	requestURL := fmt.Sprintf("%s/price?symbol=%s%s", p.baseURL, baseCurrency, quoteCurrency)
 
 	response, err := http.Get(requestURL)
