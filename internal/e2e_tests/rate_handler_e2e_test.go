@@ -20,7 +20,9 @@ func TestRateHandler_GetExchangeRate_Success(t *testing.T) {
 	go app.Run(webserver.Config{
 		BinanceCryptoProviderBaseURL:       os.Getenv("BINANCE_BASE_URL"),
 		CoinAPICryptoProviderBaseURL:       os.Getenv("COIN_API_BASE_URL"),
+		CoinBaseCryptoProviderBaseURL:      os.Getenv("COINBASE_BASE_URL"),
 		CoinAPICryptoProviderKey:           os.Getenv("COIN_API_KEY"),
+		DefaultProviderName:                os.Getenv("DEFAULT_PROVIDER_NAME"),
 		CryptoMailerSenderEmail:            os.Getenv("SENDER_EMAIL"),
 		CryptoMailerSenderPassword:         os.Getenv("SENDER_PASSWORD"),
 		SubscriberRepositoryEmailsFilePath: os.Getenv("TEST_FILE_PATH"),
@@ -61,12 +63,14 @@ func TestRateHandler_GetExchangeRate_Failure(t *testing.T) {
 	go app.Run(webserver.Config{
 		BinanceCryptoProviderBaseURL:       os.Getenv("BINANCE_BASE_URL"),
 		CoinAPICryptoProviderBaseURL:       os.Getenv("COIN_API_BASE_URL"),
+		CoinBaseCryptoProviderBaseURL:      os.Getenv("COINBASE_BASE_URL"),
 		CoinAPICryptoProviderKey:           os.Getenv("COIN_API_KEY"),
+		DefaultProviderName:                os.Getenv("DEFAULT_PROVIDER_NAME"),
 		CryptoMailerSenderEmail:            os.Getenv("SENDER_EMAIL"),
 		CryptoMailerSenderPassword:         os.Getenv("SENDER_PASSWORD"),
 		SubscriberRepositoryEmailsFilePath: os.Getenv("TEST_FILE_PATH"),
 		BaseCurrencyStr:                    os.Getenv("BASE_CURRENCY"),
-		QuoteCurrencyStr:                   os.Getenv("BASE_CURRENCY"),
+		QuoteCurrencyStr:                   os.Getenv("QUOTE_CURRENCY"),
 	})
 
 	request, err := http.NewRequest(http.MethodGet, "http://localhost:3000/api/rate", nil)

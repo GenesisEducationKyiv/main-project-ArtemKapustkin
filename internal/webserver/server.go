@@ -21,6 +21,7 @@ type Config struct {
 	CoinAPICryptoProviderBaseURL       string
 	CoinBaseCryptoProviderBaseURL      string
 	CoinAPICryptoProviderKey           string
+	DefaultProviderName                string
 	CryptoMailerSenderEmail            string
 	CryptoMailerSenderPassword         string
 	SubscriberRepositoryEmailsFilePath string
@@ -38,9 +39,7 @@ func NewApp() *App {
 	}
 }
 
-func (a *App) Run(config Config) {
-	baseCurrency, quoteCurrency := model.GetCurrencies(os.Getenv("BASE_CURRENCY"), os.Getenv("QUOTE_CURRENCY"))
-
+func getConfiguredProvider(config Config) pkg.RateProvider {
 	binanceCryptoProvider := binance_provider.NewBinanceCryptoProvider(config.BinanceCryptoProviderBaseURL)
 	coinAPICryptoProvider := coinapi_provider.NewCoinAPICryptoProvider(config.CoinAPICryptoProviderBaseURL, config.CoinAPICryptoProviderKey)
 	coinBaseCryptoProvider := coinbase_provider.NewCoinBaseAPICryptoProvider(config.CoinBaseCryptoProviderBaseURL)
@@ -53,9 +52,28 @@ func (a *App) Run(config Config) {
 	coinAPIProviderNode := pkg.NewRateProviderNode(loggingCoinAPICryptoProvider)
 	coinBaseProviderNode := pkg.NewRateProviderNode(loggingCoinBaseCryptoProvider)
 
-	// TODO: take creating chain of responsibility in function
-	binanceProviderNode.SetNext(coinAPIProviderNode)
-	coinAPIProviderNode.SetNext(coinBaseProviderNode)
+	providersChain := pkg.NewProvidersChain()
+
+	err := providersChain.RegisterProvider("binance", binanceProviderNode, coinAPIProviderNode)
+	if err != nil {
+		return nil
+	}
+	err = providersChain.RegisterProvider("coinapi", coinAPIProviderNode, coinBaseProviderNode)
+	if err != nil {
+		return nil
+	}
+	err = providersChain.RegisterProvider("coinbase", coinBaseProviderNode, nil)
+	if err != nil {
+		return nil
+	}
+
+	return providersChain.GetProvider(config.DefaultProviderName)
+}
+
+func (a *App) Run(config Config) {
+	baseCurrency, quoteCurrency := model.GetCurrencies(os.Getenv("BASE_CURRENCY"), os.Getenv("QUOTE_CURRENCY"))
+
+	rateProvider := getConfiguredProvider(config)
 
 	cryptoMailer := mailer.NewMailer("smtp.gmail.com", "587", config.CryptoMailerSenderEmail, config.CryptoMailerSenderPassword)
 
@@ -63,9 +81,9 @@ func (a *App) Run(config Config) {
 
 	mailerService := service.NewMailerService(subscriberRepository, cryptoMailer)
 
-	rateHandler := handler.NewRateHandler(binanceProviderNode, baseCurrency, quoteCurrency)
+	rateHandler := handler.NewRateHandler(rateProvider, baseCurrency, quoteCurrency)
 
-	mailerHandler := handler.NewMailerHandler(mailerService, binanceProviderNode, subscriberRepository, validator.New(), baseCurrency, quoteCurrency)
+	mailerHandler := handler.NewMailerHandler(mailerService, rateProvider, subscriberRepository, validator.New(), baseCurrency, quoteCurrency)
 
 	api := a.app.Group("/api")
 

@@ -20,7 +20,7 @@ func (l *loggingProvider) GetExchangeRateValue(baseCurrency model.Currency, quot
 	rate, err := l.provider.GetExchangeRateValue(baseCurrency, quoteCurrency)
 	if err != nil {
 		log.Printf("%s failed with error: %s", l.getProviderName(), err)
-		return 0, err
+		return rate, err
 	}
 
 	log.Printf("%s provides rate: %.2f", l.getProviderName(), rate)
