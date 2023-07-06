@@ -18,7 +18,7 @@ type SubscriberRepository interface {
 
 type MailerHandler struct {
 	mailerService        *service.MailerService
-	exchangeRateParser   ExchangeRateClient
+	exchangeRateProvider ExchangeRateClient
 	subscriberRepository SubscriberRepository
 	validator            *validator.Validate
 
@@ -28,7 +28,7 @@ type MailerHandler struct {
 
 func NewMailerHandler(
 	mailerService *service.MailerService,
-	exchangeRateParser ExchangeRateClient,
+	exchangeRateProvider ExchangeRateClient,
 	subscriberRepository SubscriberRepository,
 	validator *validator.Validate,
 	baseCurrency model.Currency,
@@ -36,7 +36,7 @@ func NewMailerHandler(
 ) *MailerHandler {
 	return &MailerHandler{
 		mailerService:             mailerService,
-		exchangeRateParser:        exchangeRateParser,
+		exchangeRateProvider:      exchangeRateProvider,
 		subscriberRepository:      subscriberRepository,
 		validator:                 validator,
 		exchangeRateBaseCurrency:  baseCurrency,
@@ -45,7 +45,7 @@ func NewMailerHandler(
 }
 
 func (h *MailerHandler) SendExchangeRate(c *fiber.Ctx) error {
-	value, err := h.exchangeRateParser.GetExchangeRateValue(h.exchangeRateBaseCurrency, h.exchangeRateQuoteCurrency)
+	value, err := h.exchangeRateProvider.GetExchangeRateValue(h.exchangeRateBaseCurrency, h.exchangeRateQuoteCurrency)
 	if err != nil {
 		return c.SendStatus(http.StatusInternalServerError)
 	}

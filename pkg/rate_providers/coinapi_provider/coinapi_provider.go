@@ -21,11 +21,8 @@ func NewCoinAPICryptoProvider(baseURL, apiKey string) *CoinAPICryptoProvider {
 	}
 }
 
-type ExchangeRate struct {
-	Time         string  `json:"time"`
-	AssetIDBase  string  `json:"asset_id_base"`
-	AssetIDQuote string  `json:"asset_id_quote"`
-	Rate         float64 `json:"rate"`
+type coinAPIResponse struct {
+	Rate float64 `json:"rate"`
 }
 
 func (p *CoinAPICryptoProvider) GetExchangeRateValue(baseCurrency model.Currency, quoteCurrency model.Currency) (float64, error) {
@@ -54,11 +51,13 @@ func (p *CoinAPICryptoProvider) GetExchangeRateValue(baseCurrency model.Currency
 		return 0, err
 	}
 
-	var exchangeRate ExchangeRate
-	err = json.Unmarshal(body, &exchangeRate)
+	var result coinAPIResponse
+
+	err = json.Unmarshal(body, &result)
 	if err != nil {
 		log.Println("failed to parse JSON: ", err)
 		return 0, err
 	}
-	return exchangeRate.Rate, nil
+
+	return result.Rate, nil
 }

@@ -10,26 +10,26 @@ import (
 )
 
 func TestGetExchangeRate_CoinAPI_Success(t *testing.T) {
-	err := godotenv.Load("../../.env.test")
+	err := godotenv.Load("../../../.env.test")
 	require.NoError(t, err, "Failed to load .env.test file")
 
 	baseCurrency, quoteCurrency := model.GetCurrencies(os.Getenv("BASE_CURRENCY"), os.Getenv("QUOTE_CURRENCY"))
 
-	coinParser := NewCoinAPICryptoProvider(os.Getenv("COIN_BASE_URL"), os.Getenv("COIN_API_KEY"))
-	rate, err := coinParser.GetExchangeRateValue(baseCurrency, quoteCurrency)
+	coinAPIProvider := NewCoinAPICryptoProvider(os.Getenv("COIN_API_BASE_URL"), os.Getenv("COIN_API_KEY"))
+	rate, err := coinAPIProvider.GetExchangeRateValue(baseCurrency, quoteCurrency)
 
 	require.NoError(t, err, "Failure occurs while parsing exchange rate using CoinAPI")
 	assert.Greater(t, rate, 0)
 }
 
 func TestGetExchangeRate_CoinAPI_Failure(t *testing.T) {
-	err := godotenv.Load("../../.env.test")
+	err := godotenv.Load("../../../.env.test")
 	require.NoError(t, err, "Failed to load .env.test file")
 
-	coinParser := NewCoinAPICryptoProvider("invalid-url", os.Getenv("COIN_API_KEY"))
+	coinAPIProvider := NewCoinAPICryptoProvider("invalid-url", os.Getenv("COIN_API_KEY"))
 
 	baseCurrency, quoteCurrency := model.GetCurrencies(os.Getenv("BASE_CURRENCY"), os.Getenv("QUOTE_CURRENCY"))
 
-	_, err = coinParser.GetExchangeRateValue(baseCurrency, quoteCurrency)
+	_, err = coinAPIProvider.GetExchangeRateValue(baseCurrency, quoteCurrency)
 	assert.Error(t, err)
 }

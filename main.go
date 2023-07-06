@@ -15,7 +15,7 @@ func main() {
 
 	app.Run(webserver.Config{
 		BinanceCryptoProviderBaseURL:       os.Getenv("BINANCE_BASE_URL"),
-		CoinAPICryptoProviderBaseURL:       os.Getenv("COIN_BASE_URL"),
+		CoinAPICryptoProviderBaseURL:       os.Getenv("COIN_API_BASE_URL"),
 		CoinAPICryptoProviderKey:           os.Getenv("COIN_API_KEY"),
 		CryptoMailerSenderEmail:            os.Getenv("SENDER_EMAIL"),
 		CryptoMailerSenderPassword:         os.Getenv("SENDER_PASSWORD"),

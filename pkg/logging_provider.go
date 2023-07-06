@@ -19,6 +19,7 @@ func NewLoggingProvider(provider RateProvider) *loggingProvider {
 func (l *loggingProvider) GetExchangeRateValue(baseCurrency model.Currency, quoteCurrency model.Currency) (float64, error) {
 	rate, err := l.provider.GetExchangeRateValue(baseCurrency, quoteCurrency)
 	if err != nil {
+		log.Printf("%s failed with error: %s", l.getProviderName(), err)
 		return 0, err
 	}
 

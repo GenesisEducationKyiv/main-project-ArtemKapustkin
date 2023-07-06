@@ -9,6 +9,7 @@ import (
 	"bitcoin-exchange-rate/pkg/mailer"
 	"bitcoin-exchange-rate/pkg/rate_providers/binance_provider"
 	"bitcoin-exchange-rate/pkg/rate_providers/coinapi_provider"
+	"bitcoin-exchange-rate/pkg/rate_providers/coinbase_provider"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"log"
@@ -18,6 +19,7 @@ import (
 type Config struct {
 	BinanceCryptoProviderBaseURL       string
 	CoinAPICryptoProviderBaseURL       string
+	CoinBaseCryptoProviderBaseURL      string
 	CoinAPICryptoProviderKey           string
 	CryptoMailerSenderEmail            string
 	CryptoMailerSenderPassword         string
@@ -39,16 +41,21 @@ func NewApp() *App {
 func (a *App) Run(config Config) {
 	baseCurrency, quoteCurrency := model.GetCurrencies(os.Getenv("BASE_CURRENCY"), os.Getenv("QUOTE_CURRENCY"))
 
-	coinAPICryptoProvider := coinapi_provider.NewCoinAPICryptoProvider(config.CoinAPICryptoProviderBaseURL, config.CoinAPICryptoProviderKey)
 	binanceCryptoProvider := binance_provider.NewBinanceCryptoProvider(config.BinanceCryptoProviderBaseURL)
+	coinAPICryptoProvider := coinapi_provider.NewCoinAPICryptoProvider(config.CoinAPICryptoProviderBaseURL, config.CoinAPICryptoProviderKey)
+	coinBaseCryptoProvider := coinbase_provider.NewCoinBaseAPICryptoProvider(config.CoinBaseCryptoProviderBaseURL)
 
-	loggingCoinAPICryptoProvider := pkg.NewLoggingProvider(coinAPICryptoProvider)
 	loggingBinanceCryptoProvider := pkg.NewLoggingProvider(binanceCryptoProvider)
+	loggingCoinAPICryptoProvider := pkg.NewLoggingProvider(coinAPICryptoProvider)
+	loggingCoinBaseCryptoProvider := pkg.NewLoggingProvider(coinBaseCryptoProvider)
 
-	coinProviderNode := pkg.NewRateProviderNode(loggingCoinAPICryptoProvider)
 	binanceProviderNode := pkg.NewRateProviderNode(loggingBinanceCryptoProvider)
+	coinAPIProviderNode := pkg.NewRateProviderNode(loggingCoinAPICryptoProvider)
+	coinBaseProviderNode := pkg.NewRateProviderNode(loggingCoinBaseCryptoProvider)
 
-	binanceProviderNode.SetNext(coinProviderNode)
+	// TODO: take creating chain of responsibility in function
+	binanceProviderNode.SetNext(coinAPIProviderNode)
+	coinAPIProviderNode.SetNext(coinBaseProviderNode)
 
 	cryptoMailer := mailer.NewMailer("smtp.gmail.com", "587", config.CryptoMailerSenderEmail, config.CryptoMailerSenderPassword)
 
