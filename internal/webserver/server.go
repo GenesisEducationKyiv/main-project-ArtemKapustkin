@@ -13,7 +13,6 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"log"
-	"os"
 )
 
 type Config struct {
@@ -71,7 +70,7 @@ func getConfiguredProvider(config Config) pkg.RateProvider {
 }
 
 func (a *App) Run(config Config) {
-	baseCurrency, quoteCurrency := model.GetCurrencies(os.Getenv("BASE_CURRENCY"), os.Getenv("QUOTE_CURRENCY"))
+	baseCurrency, quoteCurrency := model.GetCurrencies(config.BaseCurrencyStr, config.QuoteCurrencyStr)
 
 	rateProvider := getConfiguredProvider(config)
 

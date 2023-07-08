@@ -55,6 +55,8 @@ func TestRateHandler_GetExchangeRate_Success(t *testing.T) {
 	}()
 }
 
+// TODO: Rework Failure test, when chain of providers were added, the test start to throw 200 OK code even with error-producing conditions
+
 func TestRateHandler_GetExchangeRate_Failure(t *testing.T) {
 	err := godotenv.Load("../../.env.test")
 	require.NoError(t, err)
@@ -70,7 +72,7 @@ func TestRateHandler_GetExchangeRate_Failure(t *testing.T) {
 		CryptoMailerSenderPassword:         os.Getenv("SENDER_PASSWORD"),
 		SubscriberRepositoryEmailsFilePath: os.Getenv("TEST_FILE_PATH"),
 		BaseCurrencyStr:                    os.Getenv("BASE_CURRENCY"),
-		QuoteCurrencyStr:                   os.Getenv("QUOTE_CURRENCY"),
+		QuoteCurrencyStr:                   os.Getenv("BASE_CURRENCY"),
 	})
 
 	request, err := http.NewRequest(http.MethodGet, "http://localhost:3000/api/rate", nil)

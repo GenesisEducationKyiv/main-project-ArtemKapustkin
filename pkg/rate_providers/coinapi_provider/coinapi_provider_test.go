@@ -17,9 +17,8 @@ func TestGetExchangeRate_CoinAPI_Success(t *testing.T) {
 
 	coinAPIProvider := NewCoinAPICryptoProvider(os.Getenv("COIN_API_BASE_URL"), os.Getenv("COIN_API_KEY"))
 	rate, err := coinAPIProvider.GetExchangeRateValue(baseCurrency, quoteCurrency)
-
 	require.NoError(t, err, "Failure occurs while parsing exchange rate using CoinAPI")
-	assert.Greater(t, rate, 0)
+	assert.Greater(t, rate, 0.0)
 }
 
 func TestGetExchangeRate_CoinAPI_Failure(t *testing.T) {

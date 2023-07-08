@@ -15,11 +15,11 @@ func TestGetExchangeRate_BinanceAPI_Success(t *testing.T) {
 
 	baseCurrency, quoteCurrency := model.GetCurrencies(os.Getenv("BASE_CURRENCY"), os.Getenv("QUOTE_CURRENCY"))
 
-	binanceProvider := NewBinanceCryptoProvider(os.Getenv("BASE_URL"))
+	binanceProvider := NewBinanceCryptoProvider(os.Getenv("BINANCE_BASE_URL"))
 	rate, err := binanceProvider.GetExchangeRateValue(baseCurrency, quoteCurrency)
 
 	require.NoError(t, err, "Failure occurs while parsing exchange rate using BinanceApi")
-	assert.Greater(t, rate, 0)
+	assert.Greater(t, rate, 0.0)
 }
 
 func TestGetExchangeRate_BinanceAPI_Failure(t *testing.T) {
