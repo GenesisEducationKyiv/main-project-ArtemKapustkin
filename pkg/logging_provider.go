@@ -10,7 +10,7 @@ type loggingProvider struct {
 	provider RateProvider
 }
 
-func NewLoggingProvider(provider RateProvider) *loggingProvider {
+func NewLoggingProvider(provider RateProvider) RateProvider {
 	return &loggingProvider{
 		provider: provider,
 	}

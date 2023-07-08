@@ -1,7 +1,7 @@
 package service
 
 import (
-	"bitcoin-exchange-rate/internal/model"
+	model2 "bitcoin-exchange-rate/internal/model"
 	"errors"
 	"fmt"
 	"log"
@@ -10,7 +10,7 @@ import (
 var ErrSubscriberFileIsEmpty = errors.New("there are no subscribers in file")
 
 type SubscriberRepository interface {
-	GetAll() ([]*model.Subscriber, error)
+	GetAll() ([]*model2.Subscriber, error)
 }
 
 type Mailer interface {
@@ -20,18 +20,18 @@ type Mailer interface {
 type MailerService struct {
 	subscriberRepository SubscriberRepository
 	mailer               Mailer
-	messageToSend        string
+	baseMessageToSend    string
 }
 
 func NewMailerService(subscriberRepository SubscriberRepository, mailer Mailer) *MailerService {
 	return &MailerService{
 		subscriberRepository: subscriberRepository,
 		mailer:               mailer,
-		messageToSend:        "Subject: BTCUAH Exchange Rate Update\n\nDear subscriber,\n\nHere is current BTCUAH exchange rate: %s\n\nSincerely,\nArtem Kapustkin Mailer",
+		baseMessageToSend:    "Subject: BTCUAH Exchange Rate Update\n\nDear subscriber,\n\nHere is current BTCUAH exchange rate: %s\n\nSincerely,\nArtem Kapustkin Mailer",
 	}
 }
 
-func (s *MailerService) SendValueToAllEmails(value string) error {
+func (s *MailerService) SendValueToAllEmails(emailMessage model2.EmailMessage) error {
 	subscribers, err := s.subscriberRepository.GetAll()
 	if err != nil {
 		return err
@@ -42,7 +42,7 @@ func (s *MailerService) SendValueToAllEmails(value string) error {
 	}
 
 	for _, subscriber := range subscribers {
-		message := fmt.Sprintf(s.messageToSend, value)
+		message := fmt.Sprintf(s.baseMessageToSend, emailMessage)
 
 		err := s.mailer.SendEmail(subscriber.GetEmail(), message)
 		if err != nil {

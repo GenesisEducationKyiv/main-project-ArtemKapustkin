@@ -72,6 +72,8 @@ func getConfiguredProvider(config Config) pkg.RateProvider {
 func (a *App) Run(config Config) {
 	baseCurrency, quoteCurrency := model.GetCurrencies(config.BaseCurrencyStr, config.QuoteCurrencyStr)
 
+	presenter := handler.NewJSONPresenter()
+
 	rateProvider := getConfiguredProvider(config)
 
 	cryptoMailer := mailer.NewMailer("smtp.gmail.com", "587", config.CryptoMailerSenderEmail, config.CryptoMailerSenderPassword)
@@ -80,9 +82,17 @@ func (a *App) Run(config Config) {
 
 	mailerService := service.NewMailerService(subscriberRepository, cryptoMailer)
 
-	rateHandler := handler.NewRateHandler(rateProvider, baseCurrency, quoteCurrency)
+	rateHandler := handler.NewRateHandler(rateProvider, presenter, baseCurrency, quoteCurrency)
 
-	mailerHandler := handler.NewMailerHandler(mailerService, rateProvider, subscriberRepository, validator.New(), baseCurrency, quoteCurrency)
+	mailerHandler := handler.NewMailerHandler(
+		mailerService,
+		rateProvider,
+		subscriberRepository,
+		validator.New(),
+		presenter,
+		baseCurrency,
+		quoteCurrency,
+	)
 
 	api := a.app.Group("/api")
 

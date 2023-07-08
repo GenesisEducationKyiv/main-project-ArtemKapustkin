@@ -11,7 +11,6 @@ import (
 )
 
 var ErrEmailAlreadyExist = errors.New("subscriber already exists in the file")
-var ErrFileIsNotEmpty = errors.New("file is not empty")
 
 type SubscriberFileRepository struct {
 	filePath string
