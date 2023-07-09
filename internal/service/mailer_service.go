@@ -1,7 +1,7 @@
 package service
 
 import (
-	model2 "bitcoin-exchange-rate/internal/model"
+	"bitcoin-exchange-rate/internal/model"
 	"errors"
 	"fmt"
 	"log"
@@ -10,7 +10,7 @@ import (
 var ErrSubscriberFileIsEmpty = errors.New("there are no subscribers in file")
 
 type SubscriberRepository interface {
-	GetAll() ([]*model2.Subscriber, error)
+	GetAll() ([]*model.Subscriber, error)
 }
 
 type Mailer interface {
@@ -31,7 +31,7 @@ func NewMailerService(subscriberRepository SubscriberRepository, mailer Mailer) 
 	}
 }
 
-func (s *MailerService) SendValueToAllEmails(emailMessage model2.EmailMessage) error {
+func (s *MailerService) SendValueToAllEmails(emailMessage model.EmailMessage) error {
 	subscribers, err := s.subscriberRepository.GetAll()
 	if err != nil {
 		return err
