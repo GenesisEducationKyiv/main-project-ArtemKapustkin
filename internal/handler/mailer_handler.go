@@ -52,12 +52,12 @@ func NewMailerHandler(
 func (h *MailerHandler) SendExchangeRate(c *fiber.Ctx) error {
 	value, err := h.exchangeRateService.GetExchangeRateValue(h.exchangeRateBaseCurrency, h.exchangeRateQuoteCurrency)
 	if err != nil {
-		return h.presenter.PresentError(c.Status(http.StatusInternalServerError), err)
+		return h.presenter.PresentError(c, http.StatusInternalServerError, err)
 	}
 
 	err = h.mailerService.SendValueToAllEmails(model.NewEmailMessage(strconv.FormatFloat(value, 'f', 2, 64)))
 	if err != nil {
-		return h.presenter.PresentError(c.Status(http.StatusBadRequest), err)
+		return h.presenter.PresentError(c, http.StatusBadRequest, err)
 	}
 
 	return c.SendStatus(http.StatusOK)
@@ -67,7 +67,7 @@ func (h *MailerHandler) Subscribe(c *fiber.Ctx) error {
 	var payload subscribeDTO
 
 	if err := c.BodyParser(&payload); err != nil {
-		return h.presenter.PresentError(c.Status(http.StatusBadRequest), err)
+		return h.presenter.PresentError(c, http.StatusBadRequest, err)
 	}
 
 	if h.validator.Struct(&payload) != nil {
@@ -77,9 +77,9 @@ func (h *MailerHandler) Subscribe(c *fiber.Ctx) error {
 	err := h.subscriptionRepository.Create(model.NewSubscriber(payload.Email))
 	if err != nil {
 		if errors.Is(err, repository.ErrEmailAlreadyExist) {
-			return h.presenter.PresentError(c.Status(http.StatusConflict), err)
+			return h.presenter.PresentError(c, http.StatusConflict, err)
 		}
-		return h.presenter.PresentError(c.Status(http.StatusInternalServerError), err)
+		return h.presenter.PresentError(c, http.StatusInternalServerError, err)
 	}
 
 	return c.SendStatus(http.StatusOK)

@@ -6,7 +6,7 @@ import (
 
 type ResponsePresenter interface {
 	PresentExchangeRate(c *fiber.Ctx, rate float64) error
-	PresentError(c *fiber.Ctx, err error) error
+	PresentError(c *fiber.Ctx, statusCode int, err error) error
 }
 
 type JSONPresenter struct{}
@@ -19,6 +19,6 @@ func (p JSONPresenter) PresentExchangeRate(c *fiber.Ctx, rate float64) error {
 	return c.JSON(rate)
 }
 
-func (p JSONPresenter) PresentError(c *fiber.Ctx, err error) error {
-	return c.JSON(&fiber.Map{"message": err.Error()})
+func (p JSONPresenter) PresentError(c *fiber.Ctx, statusCode int, err error) error {
+	return c.Status(statusCode).JSON(&fiber.Map{"message": err.Error()})
 }

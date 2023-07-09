@@ -3,7 +3,6 @@ package e2e_tests
 import (
 	"bitcoin-exchange-rate/internal/webserver"
 	"encoding/json"
-	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -79,8 +78,8 @@ func TestRateHandler_GetExchangeRate_Failure(t *testing.T) {
 
 	client := &http.Client{}
 	response, err := client.Do(request)
+
 	require.NoError(t, err)
-	fmt.Println(response.Body)
 	require.Equal(t, http.StatusBadRequest, response.StatusCode)
 
 	defer func() {

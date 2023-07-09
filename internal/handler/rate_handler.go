@@ -2,7 +2,9 @@ package handler
 
 import (
 	"bitcoin-exchange-rate/internal/model"
+	"errors"
 	"github.com/gofiber/fiber/v2"
+	"log"
 	"net/http"
 )
 
@@ -34,7 +36,8 @@ func NewRateHandler(
 func (h *RateHandler) GetExchangeRate(c *fiber.Ctx) error {
 	rate, err := h.exchangeRateProvider.GetExchangeRateValue(h.exchangeRateBaseCurrency, h.exchangeRateQuoteCurrency)
 	if err != nil || rate == 0 {
-		return h.presenter.PresentError(c.Status(http.StatusBadRequest), err)
+		log.Println("error: ", err)
+		return h.presenter.PresentError(c, http.StatusBadRequest, errors.New("blablabla"))
 	}
 
 	return c.JSON(rate)
