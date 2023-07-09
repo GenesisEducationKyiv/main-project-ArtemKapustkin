@@ -1,10 +1,10 @@
 # CryptoCurrencyMailer
 The Crypto Currency Mailer project is a tool that allows users to stay updated with the latest exchange rates of cryptocurrencies, specifically Bitcoin (BTC) to Ukrainian Hryvnia (UAH). 
-It utilizes BinanceAPI and CoinAPI to fetch real-time exchange rate data and provides a subscription feature for users to receive email notifications when the exchange rate updates.
+It utilizes BinanceAPI, CoinAPI and CoinBase API to fetch real-time exchange rate data and provides a subscription feature for users to receive email notifications when the exchange rate updates.
 
 Key Features:
 
-* **Real-time Exchange Rate**: The project integrates with Binance and Coin APIs to fetch the current BTC to UAH exchange rate. It ensures that users receive up-to-date information on the cryptocurrency market.
+* **Real-time Exchange Rate**: The project integrates with Binance, Coin and CoinBase APIs to fetch the current BTC to UAH exchange rate. It ensures that users receive up-to-date information on the cryptocurrency market.
 
 * **Subscription Management**: Users can subscribe to the service by providing their email addresses. The project uses a .txt file to store the list of subscribers, making it easy to manage and update the subscriber list.
 
@@ -31,9 +31,10 @@ docker compose up --build
 The Binance API provides a comprehensive set of endpoints and documentation that allows developers to access various cryptocurrency-related data and services.
 These endpoints specifically designed for fetching market data, including ticker information for different trading pairs. The application uses the "api.binance.com/api/v3/ticker/price?symbol=BTCUAH" endpoint to retrieve the price of the BTC to UAH trading pair, but it also can work with another currency pairs.
 
-To ensure a fail-safe mechanism, the application can integrate CoinAPI as an alternative rate provider.
-The application uses "rest.coinapi.io/v1/exchangerate/BTC/UAH" endpoint to retrieve BTC-UAH exchange rate.
-For example, if primary provider, such as BinanceAPI, encounters issues or fails to provide the required exchange rate, the application will automatically pass the request to next provider - CoinAPI. 
+To ensure a fail-safe mechanism, the application can integrate CoinAPI and CoinBaseAPI as an alternative rate providers.
+The application uses "rest.coinapi.io/v1/exchangerate/BTC/UAH" and "api.coinbase.com/v2/prices/BTC-UAH/spot" endpoints to retrieve BTC-UAH exchange rate, 
+if primary provider, such as BinanceAPI, encounters issues or fails to provide the required exchange rate, the application will automatically pass the request to next provider - CoinAPI,
+and so if CoinAPI fails - CoinBase will become next provider in this chain. 
 Overall, the integration of Chain of Responsibility pattern provides a safety net for the application.  
 
 # API Endpoints
@@ -75,3 +76,6 @@ Overall, the integration of Chain of Responsibility pattern provides a safety ne
 
 # Tests
 To run tests use this command: go test ./...
+
+# Application architecture
+![app architecture](docs/app architecture.png)
