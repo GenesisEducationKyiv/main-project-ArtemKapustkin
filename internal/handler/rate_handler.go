@@ -31,7 +31,7 @@ func NewRateHandler(
 
 func (h *RateHandler) GetExchangeRate(c *fiber.Ctx) error {
 	rate, err := h.exchangeRateProvider.GetExchangeRateValue(h.exchangeRateBaseCurrency, h.exchangeRateQuoteCurrency)
-	if err != nil {
+	if err != nil || rate == 0 {
 		return c.SendStatus(http.StatusBadRequest)
 	}
 

@@ -55,8 +55,6 @@ func TestRateHandler_GetExchangeRate_Success(t *testing.T) {
 	}()
 }
 
-// TODO: Rework Failure test, when chain of providers were added, the test start to throw 200 OK code even with error-producing conditions
-
 func TestRateHandler_GetExchangeRate_Failure(t *testing.T) {
 	err := godotenv.Load("../../.env.test")
 	require.NoError(t, err)
@@ -66,7 +64,7 @@ func TestRateHandler_GetExchangeRate_Failure(t *testing.T) {
 		BinanceCryptoProviderBaseURL:       os.Getenv("BINANCE_BASE_URL"),
 		CoinAPICryptoProviderBaseURL:       os.Getenv("COIN_API_BASE_URL"),
 		CoinBaseCryptoProviderBaseURL:      os.Getenv("COINBASE_BASE_URL"),
-		CoinAPICryptoProviderKey:           os.Getenv("COIN_API_KEY"),
+		CoinAPICryptoProviderKey:           "invalid-key",
 		DefaultProviderName:                os.Getenv("DEFAULT_PROVIDER_NAME"),
 		CryptoMailerSenderEmail:            os.Getenv("SENDER_EMAIL"),
 		CryptoMailerSenderPassword:         os.Getenv("SENDER_PASSWORD"),
