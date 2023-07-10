@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"bitcoin-exchange-rate/internal/model"
 	"errors"
 	"github.com/gofiber/fiber/v2"
 	"net/http"
@@ -9,33 +8,27 @@ import (
 
 var ErrProviderGetRate = errors.New("there is an error, while parsing rate")
 
-type ExchangeRateProvider interface {
-	GetExchangeRateValue(baseCurrency model.Currency, quoteCurrency model.Currency) (float64, error)
+type ExchangeRateService interface {
+	GetRate() (float64, error)
 }
 
 type RateHandler struct {
-	exchangeRateProvider      ExchangeRateProvider
-	presenter                 ResponsePresenter
-	exchangeRateBaseCurrency  model.Currency
-	exchangeRateQuoteCurrency model.Currency
+	exchangeRateService ExchangeRateService
+	presenter           ResponsePresenter
 }
 
 func NewRateHandler(
-	exchangeRateProvider ExchangeRateProvider,
+	exchangeRateService ExchangeRateService,
 	presenter ResponsePresenter,
-	baseCurrency model.Currency,
-	quoteCurrency model.Currency,
 ) *RateHandler {
 	return &RateHandler{
-		exchangeRateProvider:      exchangeRateProvider,
-		presenter:                 presenter,
-		exchangeRateBaseCurrency:  baseCurrency,
-		exchangeRateQuoteCurrency: quoteCurrency,
+		exchangeRateService: exchangeRateService,
+		presenter:           presenter,
 	}
 }
 
 func (h *RateHandler) GetExchangeRate(c *fiber.Ctx) error {
-	rate, err := h.exchangeRateProvider.GetExchangeRateValue(h.exchangeRateBaseCurrency, h.exchangeRateQuoteCurrency)
+	rate, err := h.exchangeRateService.GetRate()
 	if err != nil || rate == 0 {
 		return h.presenter.PresentError(c, http.StatusBadRequest, ErrProviderGetRate)
 	}

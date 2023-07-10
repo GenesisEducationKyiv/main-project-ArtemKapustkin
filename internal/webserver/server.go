@@ -80,18 +80,18 @@ func (a *App) Run(config Config) {
 
 	subscriberRepository := repository.NewSubscriberFileRepository(config.SubscriberRepositoryEmailsFilePath)
 
+	exchangeRateService := service.NewExchangeRateService(rateProvider, baseCurrency, quoteCurrency)
+
 	mailerService := service.NewMailerService(subscriberRepository, cryptoMailer)
 
-	rateHandler := handler.NewRateHandler(rateProvider, presenter, baseCurrency, quoteCurrency)
+	rateHandler := handler.NewRateHandler(exchangeRateService, presenter)
 
 	mailerHandler := handler.NewMailerHandler(
 		mailerService,
-		rateProvider,
+		exchangeRateService,
 		subscriberRepository,
 		validator.New(),
 		presenter,
-		baseCurrency,
-		quoteCurrency,
 	)
 
 	api := a.app.Group("/api")
