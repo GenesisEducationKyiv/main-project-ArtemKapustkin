@@ -16,7 +16,7 @@ func NewJSONPresenter() ResponsePresenter {
 }
 
 func (p JSONPresenter) PresentExchangeRate(c *fiber.Ctx, rate float64) error {
-	return c.JSON(rate)
+	return c.Status(fiber.StatusOK).JSON(&fiber.Map{"rate": rate})
 }
 
 func (p JSONPresenter) PresentError(c *fiber.Ctx, statusCode int, err error) error {

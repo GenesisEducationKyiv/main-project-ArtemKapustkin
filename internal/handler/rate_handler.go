@@ -4,9 +4,10 @@ import (
 	"bitcoin-exchange-rate/internal/model"
 	"errors"
 	"github.com/gofiber/fiber/v2"
-	"log"
 	"net/http"
 )
+
+var ErrProviderGetRate = errors.New("there is an error, while parsing rate")
 
 type ExchangeRateProvider interface {
 	GetExchangeRateValue(baseCurrency model.Currency, quoteCurrency model.Currency) (float64, error)
@@ -36,9 +37,8 @@ func NewRateHandler(
 func (h *RateHandler) GetExchangeRate(c *fiber.Ctx) error {
 	rate, err := h.exchangeRateProvider.GetExchangeRateValue(h.exchangeRateBaseCurrency, h.exchangeRateQuoteCurrency)
 	if err != nil || rate == 0 {
-		log.Println("error: ", err)
-		return h.presenter.PresentError(c, http.StatusBadRequest, errors.New("blablabla"))
+		return h.presenter.PresentError(c, http.StatusBadRequest, ErrProviderGetRate)
 	}
 
-	return c.JSON(rate)
+	return h.presenter.PresentExchangeRate(c, rate)
 }
