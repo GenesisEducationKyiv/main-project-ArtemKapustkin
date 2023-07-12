@@ -82,13 +82,12 @@ func (a *App) Run(config Config) {
 
 	exchangeRateService := service.NewExchangeRateService(rateProvider, baseCurrency, quoteCurrency)
 
-	mailerService := service.NewMailerService(subscriberRepository, cryptoMailer)
+	mailerService := service.NewMailerService(subscriberRepository, exchangeRateService, cryptoMailer)
 
 	rateHandler := handler.NewRateHandler(exchangeRateService, presenter)
 
 	mailerHandler := handler.NewMailerHandler(
 		mailerService,
-		exchangeRateService,
 		subscriberRepository,
 		validator.New(),
 		presenter,

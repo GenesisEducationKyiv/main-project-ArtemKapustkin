@@ -2,43 +2,48 @@ package service
 
 import (
 	"bitcoin-exchange-rate/internal/model"
-	"errors"
 	"fmt"
 	"log"
+	"strconv"
 )
 
-var ErrSubscriberFileIsEmpty = errors.New("there are no subscribers in file")
-
-type SubscriberRepository interface {
+type SubscriptionRepository interface {
 	GetAll() ([]*model.Subscriber, error)
+	Create(subscriber *model.Subscriber) error
 }
 
 type Mailer interface {
 	SendEmail(email, value string) error
 }
 
-type MailerService struct {
-	subscriberRepository SubscriberRepository
-	mailer               Mailer
-	baseMessageToSend    string
+type RateService interface {
+	GetRate() (float64, error)
 }
 
-func NewMailerService(subscriberRepository SubscriberRepository, mailer Mailer) *MailerService {
+type MailerService struct {
+	subscriptionRepository SubscriptionRepository
+	exchangeRateService    RateService
+	mailer                 Mailer
+	baseMessageToSend      string
+}
+
+func NewMailerService(subscriptionRepository SubscriptionRepository, exchangeRateService RateService, mailer Mailer) *MailerService {
 	return &MailerService{
-		subscriberRepository: subscriberRepository,
-		mailer:               mailer,
-		baseMessageToSend:    "Subject: BTCUAH Exchange Rate Update\n\nDear subscriber,\n\nHere is current BTCUAH exchange rate: %s\n\nSincerely,\nArtem Kapustkin Mailer",
+		subscriptionRepository: subscriptionRepository,
+		exchangeRateService:    exchangeRateService,
+		mailer:                 mailer,
+		baseMessageToSend:      "Subject: BTCUAH Exchange Rate Update\n\nDear subscriber,\n\nHere is current BTCUAH exchange rate: %s\n\nSincerely,\nArtem Kapustkin Mailer",
 	}
 }
 
-func (s *MailerService) SendValueToAllEmails(emailMessage model.EmailMessage) error {
-	subscribers, err := s.subscriberRepository.GetAll()
+func (s *MailerService) sendValueToAllEmails(emailMessage model.EmailMessage) error {
+	subscribers, err := s.subscriptionRepository.GetAll()
 	if err != nil {
 		return err
 	}
 
 	if len(subscribers) == 0 {
-		return ErrSubscriberFileIsEmpty
+		return model.ErrSubscriberFileIsEmpty
 	}
 
 	for _, subscriber := range subscribers {
@@ -51,6 +56,20 @@ func (s *MailerService) SendValueToAllEmails(emailMessage model.EmailMessage) er
 		}
 
 		log.Printf("email sent successfully to %s", subscriber.GetEmail())
+	}
+
+	return nil
+}
+
+func (s *MailerService) SendExchangeRate() error {
+	value, err := s.exchangeRateService.GetRate()
+	if err != nil {
+		return err
+	}
+
+	err = s.sendValueToAllEmails(model.NewEmailMessage(strconv.FormatFloat(value, 'f', 2, 64)))
+	if err != nil {
+		return err
 	}
 
 	return nil

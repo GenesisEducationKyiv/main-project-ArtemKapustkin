@@ -2,13 +2,10 @@ package handler
 
 import (
 	"bitcoin-exchange-rate/internal/model"
-	"bitcoin-exchange-rate/internal/repository"
 	"errors"
-	"net/http"
-	"strconv"
-
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"net/http"
 )
 
 type SubscriptionRepository interface {
@@ -16,12 +13,11 @@ type SubscriptionRepository interface {
 }
 
 type MailerService interface {
-	SendValueToAllEmails(message model.EmailMessage) error
+	SendExchangeRate() error
 }
 
 type MailerHandler struct {
 	mailerService          MailerService
-	exchangeRateService    ExchangeRateService
 	subscriptionRepository SubscriptionRepository
 	validator              *validator.Validate
 	presenter              ResponsePresenter
@@ -29,14 +25,12 @@ type MailerHandler struct {
 
 func NewMailerHandler(
 	mailerService MailerService,
-	exchangeRateService ExchangeRateService,
 	subscriptionRepository SubscriptionRepository,
 	validator *validator.Validate,
 	presenter ResponsePresenter,
 ) *MailerHandler {
 	return &MailerHandler{
 		mailerService:          mailerService,
-		exchangeRateService:    exchangeRateService,
 		subscriptionRepository: subscriptionRepository,
 		validator:              validator,
 		presenter:              presenter,
@@ -44,14 +38,12 @@ func NewMailerHandler(
 }
 
 func (h *MailerHandler) SendExchangeRate(c *fiber.Ctx) error {
-	value, err := h.exchangeRateService.GetRate()
-	if err != nil {
-		return h.presenter.PresentError(c, http.StatusInternalServerError, err)
-	}
+	if err := h.mailerService.SendExchangeRate(); err != nil {
+		if errors.Is(err, model.ErrSubscriberFileIsEmpty) {
+			return h.presenter.PresentError(c, http.StatusBadRequest, err)
+		}
 
-	err = h.mailerService.SendValueToAllEmails(model.NewEmailMessage(strconv.FormatFloat(value, 'f', 2, 64)))
-	if err != nil {
-		return h.presenter.PresentError(c, http.StatusBadRequest, err)
+		return h.presenter.PresentError(c, http.StatusInternalServerError, err)
 	}
 
 	return c.SendStatus(http.StatusOK)
@@ -64,13 +56,13 @@ func (h *MailerHandler) Subscribe(c *fiber.Ctx) error {
 		return h.presenter.PresentError(c, http.StatusBadRequest, err)
 	}
 
-	if h.validator.Struct(&payload) != nil {
-		return c.SendStatus(http.StatusBadRequest)
+	if err := h.validator.Struct(&payload); err != nil {
+		return h.presenter.PresentError(c, http.StatusBadRequest, err)
 	}
 
 	err := h.subscriptionRepository.Create(model.NewSubscriber(payload.Email))
 	if err != nil {
-		if errors.Is(err, repository.ErrEmailAlreadyExist) {
+		if errors.Is(err, model.ErrSubscriberAlreadyExist) {
 			return h.presenter.PresentError(c, http.StatusConflict, err)
 		}
 		return h.presenter.PresentError(c, http.StatusInternalServerError, err)

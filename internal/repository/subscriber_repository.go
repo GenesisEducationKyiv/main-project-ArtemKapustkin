@@ -3,14 +3,11 @@ package repository
 import (
 	"bitcoin-exchange-rate/internal/model"
 	"bufio"
-	"errors"
 	"fmt"
 	"log"
 	"os"
 	"strings"
 )
-
-var ErrEmailAlreadyExist = errors.New("subscriber already exists in the file")
 
 type SubscriberFileRepository struct {
 	filePath string
@@ -52,7 +49,7 @@ func (r *SubscriberFileRepository) isSubscriberExists(subscribers []string, subs
 	for _, sub := range subscribers {
 		if sub == subscriber.GetEmail() {
 			log.Printf("subscriber '%s' already exists", subscriber.GetEmail())
-			return fmt.Errorf("%w, subscriber's email: %s", ErrEmailAlreadyExist, subscriber.GetEmail())
+			return fmt.Errorf("%w, subscriber's email: %s", model.ErrSubscriberAlreadyExist, subscriber.GetEmail())
 		}
 	}
 	return nil
