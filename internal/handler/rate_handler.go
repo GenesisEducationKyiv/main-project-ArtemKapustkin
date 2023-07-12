@@ -11,27 +11,27 @@ type ExchangeRateClient interface {
 }
 
 type RateHandler struct {
-	exchangeRateParser ExchangeRateClient
+	exchangeRateProvider ExchangeRateClient
 
 	exchangeRateBaseCurrency  model.Currency
 	exchangeRateQuoteCurrency model.Currency
 }
 
 func NewRateHandler(
-	exchangeRateParser ExchangeRateClient,
+	exchangeRateProvider ExchangeRateClient,
 	baseCurrency model.Currency,
 	quoteCurrency model.Currency,
 ) *RateHandler {
 	return &RateHandler{
-		exchangeRateParser:        exchangeRateParser,
+		exchangeRateProvider:      exchangeRateProvider,
 		exchangeRateBaseCurrency:  baseCurrency,
 		exchangeRateQuoteCurrency: quoteCurrency,
 	}
 }
 
 func (h *RateHandler) GetExchangeRate(c *fiber.Ctx) error {
-	rate, err := h.exchangeRateParser.GetExchangeRateValue(h.exchangeRateBaseCurrency, h.exchangeRateQuoteCurrency)
-	if err != nil {
+	rate, err := h.exchangeRateProvider.GetExchangeRateValue(h.exchangeRateBaseCurrency, h.exchangeRateQuoteCurrency)
+	if err != nil || rate == 0 {
 		return c.SendStatus(http.StatusBadRequest)
 	}
 

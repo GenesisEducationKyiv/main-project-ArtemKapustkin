@@ -18,7 +18,11 @@ func TestRateHandler_GetExchangeRate_Success(t *testing.T) {
 
 	app := webserver.NewApp()
 	go app.Run(webserver.Config{
-		CryptoParserBaseURL:                os.Getenv("BASE_URL"),
+		BinanceCryptoProviderBaseURL:       os.Getenv("BINANCE_BASE_URL"),
+		CoinAPICryptoProviderBaseURL:       os.Getenv("COIN_API_BASE_URL"),
+		CoinBaseCryptoProviderBaseURL:      os.Getenv("COINBASE_BASE_URL"),
+		CoinAPICryptoProviderKey:           os.Getenv("COIN_API_KEY"),
+		DefaultProviderName:                os.Getenv("DEFAULT_PROVIDER_NAME"),
 		CryptoMailerSenderEmail:            os.Getenv("SENDER_EMAIL"),
 		CryptoMailerSenderPassword:         os.Getenv("SENDER_PASSWORD"),
 		SubscriberRepositoryEmailsFilePath: os.Getenv("TEST_FILE_PATH"),
@@ -57,7 +61,11 @@ func TestRateHandler_GetExchangeRate_Failure(t *testing.T) {
 
 	app := webserver.NewApp()
 	go app.Run(webserver.Config{
-		CryptoParserBaseURL:                os.Getenv("BASE_URL"),
+		BinanceCryptoProviderBaseURL:       os.Getenv("BINANCE_BASE_URL"),
+		CoinAPICryptoProviderBaseURL:       os.Getenv("COIN_API_BASE_URL"),
+		CoinBaseCryptoProviderBaseURL:      os.Getenv("COINBASE_BASE_URL"),
+		CoinAPICryptoProviderKey:           "invalid-key",
+		DefaultProviderName:                os.Getenv("DEFAULT_PROVIDER_NAME"),
 		CryptoMailerSenderEmail:            os.Getenv("SENDER_EMAIL"),
 		CryptoMailerSenderPassword:         os.Getenv("SENDER_PASSWORD"),
 		SubscriberRepositoryEmailsFilePath: os.Getenv("TEST_FILE_PATH"),

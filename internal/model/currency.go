@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	"log"
 )
 
 type Currency string
@@ -20,4 +21,18 @@ func CurrencyFromString(currencyStr string) (Currency, error) {
 	default:
 		return "", errors.New("unknown currency")
 	}
+}
+
+func GetCurrencies(baseCurrencyStr, quoteCurrencyStr string) (Currency, Currency) {
+	baseCurrency, err := CurrencyFromString(baseCurrencyStr)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	quoteCurrency, err := CurrencyFromString(quoteCurrencyStr)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return baseCurrency, quoteCurrency
 }

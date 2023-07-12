@@ -5,15 +5,22 @@ import (
 	"bitcoin-exchange-rate/internal/model"
 	"bitcoin-exchange-rate/internal/repository"
 	"bitcoin-exchange-rate/internal/service"
+	"bitcoin-exchange-rate/pkg"
 	"bitcoin-exchange-rate/pkg/mailer"
-	"bitcoin-exchange-rate/pkg/parser"
+	"bitcoin-exchange-rate/pkg/rate_providers/binance_provider"
+	"bitcoin-exchange-rate/pkg/rate_providers/coinapi_provider"
+	"bitcoin-exchange-rate/pkg/rate_providers/coinbase_provider"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"log"
 )
 
 type Config struct {
-	CryptoParserBaseURL                string
+	BinanceCryptoProviderBaseURL       string
+	CoinAPICryptoProviderBaseURL       string
+	CoinBaseCryptoProviderBaseURL      string
+	CoinAPICryptoProviderKey           string
+	DefaultProviderName                string
 	CryptoMailerSenderEmail            string
 	CryptoMailerSenderPassword         string
 	SubscriberRepositoryEmailsFilePath string
@@ -31,17 +38,41 @@ func NewApp() *App {
 	}
 }
 
-func (a *App) Run(config Config) {
-	baseCurrency, err := model.CurrencyFromString(config.BaseCurrencyStr)
+func getConfiguredProvider(config Config) pkg.RateProvider {
+	binanceCryptoProvider := binance_provider.NewBinanceCryptoProvider(config.BinanceCryptoProviderBaseURL)
+	coinAPICryptoProvider := coinapi_provider.NewCoinAPICryptoProvider(config.CoinAPICryptoProviderBaseURL, config.CoinAPICryptoProviderKey)
+	coinBaseCryptoProvider := coinbase_provider.NewCoinBaseAPICryptoProvider(config.CoinBaseCryptoProviderBaseURL)
+
+	loggingBinanceCryptoProvider := pkg.NewLoggingProvider(binanceCryptoProvider)
+	loggingCoinAPICryptoProvider := pkg.NewLoggingProvider(coinAPICryptoProvider)
+	loggingCoinBaseCryptoProvider := pkg.NewLoggingProvider(coinBaseCryptoProvider)
+
+	binanceProviderNode := pkg.NewRateProviderNode(loggingBinanceCryptoProvider)
+	coinAPIProviderNode := pkg.NewRateProviderNode(loggingCoinAPICryptoProvider)
+	coinBaseProviderNode := pkg.NewRateProviderNode(loggingCoinBaseCryptoProvider)
+
+	providersChain := pkg.NewProvidersChain()
+
+	err := providersChain.RegisterProvider("binance", binanceProviderNode, coinAPIProviderNode)
 	if err != nil {
-		log.Fatal(err)
+		return nil
 	}
-	quoteCurrency, err := model.CurrencyFromString(config.QuoteCurrencyStr)
+	err = providersChain.RegisterProvider("coinapi", coinAPIProviderNode, coinBaseProviderNode)
 	if err != nil {
-		log.Fatal(err)
+		return nil
+	}
+	err = providersChain.RegisterProvider("coinbase", coinBaseProviderNode, nil)
+	if err != nil {
+		return nil
 	}
 
-	cryptoParser := parser.NewBinanceCryptoParser(config.CryptoParserBaseURL)
+	return providersChain.GetProvider(config.DefaultProviderName)
+}
+
+func (a *App) Run(config Config) {
+	baseCurrency, quoteCurrency := model.GetCurrencies(config.BaseCurrencyStr, config.QuoteCurrencyStr)
+
+	rateProvider := getConfiguredProvider(config)
 
 	cryptoMailer := mailer.NewMailer("smtp.gmail.com", "587", config.CryptoMailerSenderEmail, config.CryptoMailerSenderPassword)
 
@@ -49,9 +80,9 @@ func (a *App) Run(config Config) {
 
 	mailerService := service.NewMailerService(subscriberRepository, cryptoMailer)
 
-	rateHandler := handler.NewRateHandler(cryptoParser, baseCurrency, quoteCurrency)
+	rateHandler := handler.NewRateHandler(rateProvider, baseCurrency, quoteCurrency)
 
-	mailerHandler := handler.NewMailerHandler(mailerService, cryptoParser, subscriberRepository, validator.New(), baseCurrency, quoteCurrency)
+	mailerHandler := handler.NewMailerHandler(mailerService, rateProvider, subscriberRepository, validator.New(), baseCurrency, quoteCurrency)
 
 	api := a.app.Group("/api")
 
