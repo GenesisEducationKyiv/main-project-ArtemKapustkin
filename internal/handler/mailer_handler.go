@@ -3,7 +3,6 @@ package handler
 import (
 	"bitcoin-exchange-rate/internal/model"
 	"bitcoin-exchange-rate/internal/repository"
-	"bitcoin-exchange-rate/internal/service"
 	"errors"
 	"net/http"
 	"strconv"
@@ -12,47 +11,47 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-type SubscriberRepository interface {
+type SubscriptionRepository interface {
 	Create(subscriber *model.Subscriber) error
 }
 
-type MailerHandler struct {
-	mailerService        *service.MailerService
-	exchangeRateProvider ExchangeRateClient
-	subscriberRepository SubscriberRepository
-	validator            *validator.Validate
+type MailerService interface {
+	SendValueToAllEmails(message model.EmailMessage) error
+}
 
-	exchangeRateBaseCurrency  model.Currency
-	exchangeRateQuoteCurrency model.Currency
+type MailerHandler struct {
+	mailerService          MailerService
+	exchangeRateService    ExchangeRateService
+	subscriptionRepository SubscriptionRepository
+	validator              *validator.Validate
+	presenter              ResponsePresenter
 }
 
 func NewMailerHandler(
-	mailerService *service.MailerService,
-	exchangeRateProvider ExchangeRateClient,
-	subscriberRepository SubscriberRepository,
+	mailerService MailerService,
+	exchangeRateService ExchangeRateService,
+	subscriptionRepository SubscriptionRepository,
 	validator *validator.Validate,
-	baseCurrency model.Currency,
-	quoteCurrency model.Currency,
+	presenter ResponsePresenter,
 ) *MailerHandler {
 	return &MailerHandler{
-		mailerService:             mailerService,
-		exchangeRateProvider:      exchangeRateProvider,
-		subscriberRepository:      subscriberRepository,
-		validator:                 validator,
-		exchangeRateBaseCurrency:  baseCurrency,
-		exchangeRateQuoteCurrency: quoteCurrency,
+		mailerService:          mailerService,
+		exchangeRateService:    exchangeRateService,
+		subscriptionRepository: subscriptionRepository,
+		validator:              validator,
+		presenter:              presenter,
 	}
 }
 
 func (h *MailerHandler) SendExchangeRate(c *fiber.Ctx) error {
-	value, err := h.exchangeRateProvider.GetExchangeRateValue(h.exchangeRateBaseCurrency, h.exchangeRateQuoteCurrency)
+	value, err := h.exchangeRateService.GetRate()
 	if err != nil {
-		return c.SendStatus(http.StatusInternalServerError)
+		return h.presenter.PresentError(c, http.StatusInternalServerError, err)
 	}
 
-	err = h.mailerService.SendValueToAllEmails(strconv.FormatFloat(value, 'f', 2, 64))
+	err = h.mailerService.SendValueToAllEmails(model.NewEmailMessage(strconv.FormatFloat(value, 'f', 2, 64)))
 	if err != nil {
-		return c.SendStatus(http.StatusBadRequest)
+		return h.presenter.PresentError(c, http.StatusBadRequest, err)
 	}
 
 	return c.SendStatus(http.StatusOK)
@@ -62,19 +61,19 @@ func (h *MailerHandler) Subscribe(c *fiber.Ctx) error {
 	var payload subscribeDTO
 
 	if err := c.BodyParser(&payload); err != nil {
-		return c.SendStatus(http.StatusBadRequest)
+		return h.presenter.PresentError(c, http.StatusBadRequest, err)
 	}
 
 	if h.validator.Struct(&payload) != nil {
 		return c.SendStatus(http.StatusBadRequest)
 	}
 
-	err := h.subscriberRepository.Create(model.NewSubscriber(payload.Email))
+	err := h.subscriptionRepository.Create(model.NewSubscriber(payload.Email))
 	if err != nil {
 		if errors.Is(err, repository.ErrEmailAlreadyExist) {
-			return c.SendStatus(http.StatusConflict)
+			return h.presenter.PresentError(c, http.StatusConflict, err)
 		}
-		return c.SendStatus(http.StatusInternalServerError)
+		return h.presenter.PresentError(c, http.StatusInternalServerError, err)
 	}
 
 	return c.SendStatus(http.StatusOK)

@@ -78,8 +78,8 @@ func TestRateHandler_GetExchangeRate_Failure(t *testing.T) {
 
 	client := &http.Client{}
 	response, err := client.Do(request)
-	require.NoError(t, err)
 
+	require.NoError(t, err)
 	require.Equal(t, http.StatusBadRequest, response.StatusCode)
 
 	defer func() {
