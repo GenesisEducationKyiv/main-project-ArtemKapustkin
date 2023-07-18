@@ -2,7 +2,6 @@ package service
 
 import (
 	"bitcoin-exchange-rate/modules/notification_module/model"
-	"bitcoin-exchange-rate/pkg/logger"
 	"fmt"
 	"strconv"
 )
@@ -20,15 +19,20 @@ type RateService interface {
 	GetRate() (float64, error)
 }
 
+type Logger interface {
+	Error(message string)
+	Info(message string)
+}
+
 type MailerService struct {
 	subscriptionRepository SubscriptionRepository
 	exchangeRateService    RateService
 	mailer                 Mailer
 	baseMessageToSend      string
-	logger                 *logger.RabbitMQLogger
+	logger                 Logger
 }
 
-func NewMailerService(subscriptionRepository SubscriptionRepository, exchangeRateService RateService, mailer Mailer, logger *logger.RabbitMQLogger) *MailerService {
+func NewMailerService(subscriptionRepository SubscriptionRepository, exchangeRateService RateService, mailer Mailer, logger Logger) *MailerService {
 	return &MailerService{
 		subscriptionRepository: subscriptionRepository,
 		exchangeRateService:    exchangeRateService,

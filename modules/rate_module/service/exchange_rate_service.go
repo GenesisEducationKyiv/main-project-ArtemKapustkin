@@ -2,21 +2,25 @@ package service
 
 import (
 	"bitcoin-exchange-rate/modules/rate_module/model"
-	"bitcoin-exchange-rate/pkg/logger"
 )
 
 type RateProvider interface {
 	GetExchangeRateValue(baseCurrency model.Currency, quoteCurrency model.Currency) (float64, error)
 }
 
+type Logger interface {
+	Error(message string)
+	Info(message string)
+}
+
 type ExchangeRateService struct {
 	rateProvider  RateProvider
 	baseCurrency  model.Currency
 	quoteCurrency model.Currency
-	logger        *logger.RabbitMQLogger
+	logger        Logger
 }
 
-func NewExchangeRateService(rateProvider RateProvider, baseCurrency, quoteCurrency model.Currency, logger *logger.RabbitMQLogger) *ExchangeRateService {
+func NewExchangeRateService(rateProvider RateProvider, baseCurrency, quoteCurrency model.Currency, logger Logger) *ExchangeRateService {
 	return &ExchangeRateService{
 		rateProvider:  rateProvider,
 		baseCurrency:  baseCurrency,

@@ -2,7 +2,6 @@ package repository
 
 import (
 	"bitcoin-exchange-rate/modules/notification_module/model"
-	"bitcoin-exchange-rate/pkg/logger"
 	"bufio"
 	"fmt"
 	"log"
@@ -10,12 +9,17 @@ import (
 	"strings"
 )
 
-type SubscriberFileRepository struct {
-	filePath string
-	logger   *logger.RabbitMQLogger
+type Logger interface {
+	Error(message string)
+	Info(message string)
 }
 
-func NewSubscriberFileRepository(filePath string, logger *logger.RabbitMQLogger) *SubscriberFileRepository {
+type SubscriberFileRepository struct {
+	filePath string
+	logger   Logger
+}
+
+func NewSubscriberFileRepository(filePath string, logger Logger) *SubscriberFileRepository {
 	return &SubscriberFileRepository{
 		filePath: filePath,
 		logger:   logger,

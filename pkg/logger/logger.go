@@ -7,12 +7,6 @@ import (
 	"log"
 )
 
-type Logger interface {
-	Error(message string)
-	Info(message string)
-	Debug(message string)
-}
-
 type rabbitMQConfig struct {
 	Host     string
 	Port     string
