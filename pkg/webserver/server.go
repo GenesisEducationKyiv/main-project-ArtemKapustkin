@@ -86,9 +86,9 @@ func (a *App) Run(config Config) {
 
 	subscriberRepository := repository.NewSubscriberFileRepository(config.SubscriberRepositoryEmailsFilePath, rabbitLogger)
 
-	exchangeRateService := rateService.NewExchangeRateService(rateProvider, baseCurrency, quoteCurrency)
+	exchangeRateService := rateService.NewExchangeRateService(rateProvider, baseCurrency, quoteCurrency, rabbitLogger)
 
-	mailerService := notificationService.NewMailerService(subscriberRepository, exchangeRateService, cryptoMailer)
+	mailerService := notificationService.NewMailerService(subscriberRepository, exchangeRateService, cryptoMailer, rabbitLogger)
 
 	rateHandler := rateModuleHandler.NewRateHandler(exchangeRateService, JSONPresenter)
 

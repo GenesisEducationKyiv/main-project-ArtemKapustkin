@@ -3,7 +3,6 @@ package service
 import (
 	"bitcoin-exchange-rate/modules/notification_module/model"
 	"bitcoin-exchange-rate/pkg/logger"
-	"errors"
 	"fmt"
 	"strconv"
 )
@@ -54,7 +53,7 @@ func (s *MailerService) sendValueToAllEmails(emailMessage model.EmailMessage) er
 
 		err := s.mailer.SendEmail(subscriber.GetEmail(), message)
 		if err != nil {
-			specifiedErr := errors.New(fmt.Sprintf("failed to send email to %s: %s", subscriber.GetEmail(), err))
+			specifiedErr := fmt.Errorf("failed to send email to %s: %s", subscriber.GetEmail(), err)
 			return specifiedErr
 		}
 
