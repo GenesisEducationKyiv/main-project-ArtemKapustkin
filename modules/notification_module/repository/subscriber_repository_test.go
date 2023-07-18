@@ -2,6 +2,7 @@ package repository
 
 import (
 	"bitcoin-exchange-rate/modules/notification_module/model"
+	"bitcoin-exchange-rate/pkg/logger"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -14,7 +15,9 @@ func TestCreateSubscriber(t *testing.T) {
 	require.NoError(t, err, "Failed to load .env.test file")
 
 	testFilePath := os.Getenv("REPO_TEST_FILE_PATH")
-	subscriberRepository := NewSubscriberFileRepository(testFilePath)
+
+	rabbitLogger := logger.NewRabbitMQLogger()
+	subscriberRepository := NewSubscriberFileRepository(testFilePath, rabbitLogger)
 
 	testEmail := "test@gmail.com"
 	testSubscriber := model.NewSubscriber(testEmail)

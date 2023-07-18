@@ -2,6 +2,7 @@ package repository
 
 import (
 	"bitcoin-exchange-rate/modules/notification_module/model"
+	"bitcoin-exchange-rate/pkg/logger"
 	"bufio"
 	"fmt"
 	"log"
@@ -11,11 +12,13 @@ import (
 
 type SubscriberFileRepository struct {
 	filePath string
+	logger   *logger.RabbitMQLogger
 }
 
-func NewSubscriberFileRepository(filePath string) *SubscriberFileRepository {
+func NewSubscriberFileRepository(filePath string, logger *logger.RabbitMQLogger) *SubscriberFileRepository {
 	return &SubscriberFileRepository{
 		filePath: filePath,
+		logger:   logger,
 	}
 }
 
@@ -27,7 +30,8 @@ func (r *SubscriberFileRepository) GetAll() ([]*model.Subscriber, error) {
 
 	defer func() {
 		if err := file.Close(); err != nil {
-			log.Printf("error closing file: %s", err)
+			log := fmt.Sprintf("error closing file: %s", err)
+			r.logger.Error(log)
 		}
 	}()
 
@@ -48,7 +52,8 @@ func (r *SubscriberFileRepository) GetAll() ([]*model.Subscriber, error) {
 func (r *SubscriberFileRepository) isSubscriberExists(subscribers []string, subscriber *model.Subscriber) error {
 	for _, sub := range subscribers {
 		if sub == subscriber.GetEmail() {
-			log.Printf("subscriber '%s' already exists", subscriber.GetEmail())
+			log := fmt.Sprintf("subscriber '%s' already exists", subscriber.GetEmail())
+			r.logger.Error(log)
 			return fmt.Errorf("%w, subscriber's email: %s", model.ErrSubscriberAlreadyExist, subscriber.GetEmail())
 		}
 	}
@@ -74,15 +79,16 @@ func (r *SubscriberFileRepository) Create(subscriber *model.Subscriber) error {
 
 	defer func() {
 		if err := writeFile.Close(); err != nil {
-			log.Printf("error closing file: %s", err)
+			log := fmt.Sprintf("error closing file: %s", err)
+			r.logger.Error(log)
 		}
 	}()
 
 	if _, err := writeFile.WriteString("\n" + subscriber.GetEmail()); err != nil {
 		return err
 	}
-	log.Printf("subscriber '%s' added successfully", subscriber.GetEmail())
-
+	log := fmt.Sprintf("subscriber '%s' added successfully", subscriber.GetEmail())
+	r.logger.Info(log)
 	return nil
 }
 

@@ -12,6 +12,7 @@ import (
 	"bitcoin-exchange-rate/modules/rate_module/pkg/rate_providers/coinapi_provider"
 	"bitcoin-exchange-rate/modules/rate_module/pkg/rate_providers/coinbase_provider"
 	rateService "bitcoin-exchange-rate/modules/rate_module/service"
+	"bitcoin-exchange-rate/pkg/logger"
 	"bitcoin-exchange-rate/pkg/presenter"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -73,6 +74,8 @@ func getConfiguredProvider(config Config) pkg.RateProvider {
 }
 
 func (a *App) Run(config Config) {
+	rabbitLogger := logger.NewRabbitMQLogger()
+
 	baseCurrency, quoteCurrency := model.GetCurrencies(config.BaseCurrencyStr, config.QuoteCurrencyStr)
 
 	JSONPresenter := presenter.NewJSONPresenter()
@@ -81,7 +84,7 @@ func (a *App) Run(config Config) {
 
 	cryptoMailer := mailer.NewMailer("smtp.gmail.com", "587", config.CryptoMailerSenderEmail, config.CryptoMailerSenderPassword)
 
-	subscriberRepository := repository.NewSubscriberFileRepository(config.SubscriberRepositoryEmailsFilePath)
+	subscriberRepository := repository.NewSubscriberFileRepository(config.SubscriberRepositoryEmailsFilePath, rabbitLogger)
 
 	exchangeRateService := rateService.NewExchangeRateService(rateProvider, baseCurrency, quoteCurrency)
 

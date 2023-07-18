@@ -1,6 +1,44 @@
 version: '3.9'
 services:
-  genesis_test_case:
+  rabbitmq:
+    image: rabbitmq:3.10.7-management
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 2s
+    networks:
+      - crypto-mailer
+
+  logs-consumer:
+    build: ./logs-consumer
+    ports:
+      - "3001:3000"
+    restart: on-failure
+    depends_on:
+      - crypto_currency_mailer
+    networks:
+      - crypto-mailer
+
+  crypto_currency_mailer:
     build: .
     ports:
       - "3000:3000"
+    restart: on-failure
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - crypto-mailer
+
+networks:
+  crypto-mailer:
+    driver: bridge
+    external: false
