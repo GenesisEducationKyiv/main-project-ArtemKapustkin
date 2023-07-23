@@ -19,6 +19,4 @@ COPY --from=build /crypto_currency_mailer/main ./
 
 COPY .env .env
 
-COPY data /app/data
-
 CMD ["./main"]

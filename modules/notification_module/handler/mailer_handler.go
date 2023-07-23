@@ -9,32 +9,26 @@ import (
 	"net/http"
 )
 
-type SubscriptionRepository interface {
-	Create(subscriber *model.Subscriber) error
-}
-
 type MailerService interface {
 	SendExchangeRate() error
+	Subscribe(subscriber *model.Subscriber) error
 }
 
 type MailerHandler struct {
-	mailerService          MailerService
-	subscriptionRepository SubscriptionRepository
-	validator              *validator.Validate
-	presenter              presenter.ResponsePresenter
+	mailerService MailerService
+	validator     *validator.Validate
+	presenter     presenter.ResponsePresenter
 }
 
 func NewMailerHandler(
 	mailerService MailerService,
-	subscriptionRepository SubscriptionRepository,
 	validator *validator.Validate,
 	presenter presenter.ResponsePresenter,
 ) *MailerHandler {
 	return &MailerHandler{
-		mailerService:          mailerService,
-		subscriptionRepository: subscriptionRepository,
-		validator:              validator,
-		presenter:              presenter,
+		mailerService: mailerService,
+		validator:     validator,
+		presenter:     presenter,
 	}
 }
 
@@ -61,7 +55,7 @@ func (h *MailerHandler) Subscribe(c *fiber.Ctx) error {
 		return h.presenter.PresentError(c, http.StatusBadRequest, err)
 	}
 
-	err := h.subscriptionRepository.Create(model.NewSubscriber(payload.Email))
+	err := h.mailerService.Subscribe(model.NewSubscriber(payload.Email))
 	if err != nil {
 		if errors.Is(err, model.ErrSubscriberAlreadyExist) {
 			return h.presenter.PresentError(c, http.StatusConflict, err)

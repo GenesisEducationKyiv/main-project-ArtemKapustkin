@@ -83,3 +83,15 @@ func (s *MailerService) SendExchangeRate() error {
 
 	return nil
 }
+
+func (s *MailerService) Subscribe(subscriber *model.Subscriber) error {
+
+	err := s.subscriptionRepository.Create(subscriber)
+	if err != nil {
+		s.logger.Error(err.Error())
+		return err
+	}
+	log := fmt.Sprintf("subscriber %s created successfully", subscriber.GetEmail())
+	s.logger.Info(log)
+	return nil
+}

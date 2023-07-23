@@ -14,31 +14,35 @@ import (
 	rateService "bitcoin-exchange-rate/modules/rate_module/service"
 	"bitcoin-exchange-rate/pkg/logger"
 	"bitcoin-exchange-rate/pkg/presenter"
+	"database/sql"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+
 	"log"
 )
 
 type Config struct {
-	BinanceCryptoProviderBaseURL       string
-	CoinAPICryptoProviderBaseURL       string
-	CoinBaseCryptoProviderBaseURL      string
-	CoinAPICryptoProviderKey           string
-	DefaultProviderName                string
-	CryptoMailerSenderEmail            string
-	CryptoMailerSenderPassword         string
-	SubscriberRepositoryEmailsFilePath string
-	BaseCurrencyStr                    string
-	QuoteCurrencyStr                   string
+	BinanceCryptoProviderBaseURL  string
+	CoinAPICryptoProviderBaseURL  string
+	CoinBaseCryptoProviderBaseURL string
+	CoinAPICryptoProviderKey      string
+	DefaultProviderName           string
+	CryptoMailerSenderEmail       string
+	CryptoMailerSenderPassword    string
+	BaseCurrencyStr               string
+	QuoteCurrencyStr              string
 }
 
 type App struct {
 	app *fiber.App
+	db  *sql.DB
 }
 
-func NewApp() *App {
+func NewApp(db *sql.DB) *App {
 	return &App{
 		app: fiber.New(),
+		db:  db,
 	}
 }
 
@@ -84,17 +88,16 @@ func (a *App) Run(config Config) {
 
 	cryptoMailer := mailer.NewMailer("smtp.gmail.com", "587", config.CryptoMailerSenderEmail, config.CryptoMailerSenderPassword)
 
-	subscriberRepository := repository.NewSubscriberFileRepository(config.SubscriberRepositoryEmailsFilePath, rabbitLogger)
+	dbRepository := repository.NewSubscriberDBRepository(a.db)
 
 	exchangeRateService := rateService.NewExchangeRateService(rateProvider, baseCurrency, quoteCurrency, rabbitLogger)
 
-	mailerService := notificationService.NewMailerService(subscriberRepository, exchangeRateService, cryptoMailer, rabbitLogger)
+	mailerService := notificationService.NewMailerService(dbRepository, exchangeRateService, cryptoMailer, rabbitLogger)
 
 	rateHandler := rateModuleHandler.NewRateHandler(exchangeRateService, JSONPresenter)
 
 	mailerHandler := notificationModuleHandler.NewMailerHandler(
 		mailerService,
-		subscriberRepository,
 		validator.New(),
 		JSONPresenter,
 	)
@@ -108,6 +111,14 @@ func (a *App) Run(config Config) {
 	if err := a.app.Listen(":3000"); err != nil {
 		log.Fatal(err)
 	}
+
+	defer func(db *sql.DB) {
+		err := db.Close()
+		if err != nil {
+			log.Fatalf("error occurs while closing db: %v", err)
+		}
+	}(a.db)
+
 }
 
 func (a *App) Shutdown() {
