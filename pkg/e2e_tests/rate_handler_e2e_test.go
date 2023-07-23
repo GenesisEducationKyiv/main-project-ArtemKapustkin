@@ -1,6 +1,7 @@
 package e2e_tests
 
 import (
+	"bitcoin-exchange-rate/pkg/database"
 	"bitcoin-exchange-rate/pkg/webserver"
 	"encoding/json"
 	"github.com/joho/godotenv"
@@ -16,18 +17,26 @@ func TestRateHandler_GetExchangeRate_Success(t *testing.T) {
 	err := godotenv.Load("../../.env.test")
 	require.NoError(t, err)
 
-	app := webserver.NewApp()
+	db := database.NewDB(database.DBConfig{
+		Host:       os.Getenv("DB_HOST"),
+		Port:       os.Getenv("DB_PORT"),
+		User:       os.Getenv("DB_USER"),
+		Password:   os.Getenv("DB_PASSWORD"),
+		DBName:     os.Getenv("DB_NAME"),
+		DriverName: os.Getenv("DB_DRIVER_NAME"),
+	})
+
+	app := webserver.NewApp(db)
 	go app.Run(webserver.Config{
-		BinanceCryptoProviderBaseURL:       os.Getenv("BINANCE_BASE_URL"),
-		CoinAPICryptoProviderBaseURL:       os.Getenv("COIN_API_BASE_URL"),
-		CoinBaseCryptoProviderBaseURL:      os.Getenv("COINBASE_BASE_URL"),
-		CoinAPICryptoProviderKey:           os.Getenv("COIN_API_KEY"),
-		DefaultProviderName:                os.Getenv("DEFAULT_PROVIDER_NAME"),
-		CryptoMailerSenderEmail:            os.Getenv("SENDER_EMAIL"),
-		CryptoMailerSenderPassword:         os.Getenv("SENDER_PASSWORD"),
-		SubscriberRepositoryEmailsFilePath: os.Getenv("TEST_FILE_PATH"),
-		BaseCurrencyStr:                    os.Getenv("BASE_CURRENCY"),
-		QuoteCurrencyStr:                   os.Getenv("QUOTE_CURRENCY"),
+		BinanceCryptoProviderBaseURL:  os.Getenv("BINANCE_BASE_URL"),
+		CoinAPICryptoProviderBaseURL:  os.Getenv("COIN_API_BASE_URL"),
+		CoinBaseCryptoProviderBaseURL: os.Getenv("COINBASE_BASE_URL"),
+		CoinAPICryptoProviderKey:      os.Getenv("COIN_API_KEY"),
+		DefaultProviderName:           os.Getenv("DEFAULT_PROVIDER_NAME"),
+		CryptoMailerSenderEmail:       os.Getenv("SENDER_EMAIL"),
+		CryptoMailerSenderPassword:    os.Getenv("SENDER_PASSWORD"),
+		BaseCurrencyStr:               os.Getenv("BASE_CURRENCY"),
+		QuoteCurrencyStr:              os.Getenv("QUOTE_CURRENCY"),
 	})
 
 	request, err := http.NewRequest(http.MethodGet, "http://localhost:3000/api/rate", nil)
@@ -62,18 +71,26 @@ func TestRateHandler_GetExchangeRate_Failure(t *testing.T) {
 	err := godotenv.Load("../../.env.test")
 	require.NoError(t, err)
 
-	app := webserver.NewApp()
+	db := database.NewDB(database.DBConfig{
+		Host:       os.Getenv("DB_HOST"),
+		Port:       os.Getenv("DB_PORT"),
+		User:       os.Getenv("DB_USER"),
+		Password:   os.Getenv("DB_PASSWORD"),
+		DBName:     os.Getenv("DB_NAME"),
+		DriverName: os.Getenv("DB_DRIVER_NAME"),
+	})
+
+	app := webserver.NewApp(db)
 	go app.Run(webserver.Config{
-		BinanceCryptoProviderBaseURL:       os.Getenv("BINANCE_BASE_URL"),
-		CoinAPICryptoProviderBaseURL:       os.Getenv("COIN_API_BASE_URL"),
-		CoinBaseCryptoProviderBaseURL:      os.Getenv("COINBASE_BASE_URL"),
-		CoinAPICryptoProviderKey:           "invalid-key",
-		DefaultProviderName:                os.Getenv("DEFAULT_PROVIDER_NAME"),
-		CryptoMailerSenderEmail:            os.Getenv("SENDER_EMAIL"),
-		CryptoMailerSenderPassword:         os.Getenv("SENDER_PASSWORD"),
-		SubscriberRepositoryEmailsFilePath: os.Getenv("TEST_FILE_PATH"),
-		BaseCurrencyStr:                    os.Getenv("BASE_CURRENCY"),
-		QuoteCurrencyStr:                   os.Getenv("BASE_CURRENCY"),
+		BinanceCryptoProviderBaseURL:  os.Getenv("BINANCE_BASE_URL"),
+		CoinAPICryptoProviderBaseURL:  os.Getenv("COIN_API_BASE_URL"),
+		CoinBaseCryptoProviderBaseURL: os.Getenv("COINBASE_BASE_URL"),
+		CoinAPICryptoProviderKey:      "invalid-key",
+		DefaultProviderName:           os.Getenv("DEFAULT_PROVIDER_NAME"),
+		CryptoMailerSenderEmail:       os.Getenv("SENDER_EMAIL"),
+		CryptoMailerSenderPassword:    os.Getenv("SENDER_PASSWORD"),
+		BaseCurrencyStr:               os.Getenv("BASE_CURRENCY"),
+		QuoteCurrencyStr:              os.Getenv("BASE_CURRENCY"),
 	})
 
 	request, err := http.NewRequest(http.MethodGet, "http://localhost:3000/api/rate", nil)
