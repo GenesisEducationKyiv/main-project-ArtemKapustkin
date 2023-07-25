@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bitcoin-exchange-rate/internal/webserver"
+	"bitcoin-exchange-rate/pkg/webserver"
 	"github.com/joho/godotenv"
 	"log"
 	"os"
